@@ -186,7 +186,7 @@ describe("The Generator API", function () {
       assert("Item removed from cart", message);
     }
   });
-  after(() => {
-    pool.end();
-  });
+  //after(() => {
+   // pool.end();
+  //});
 });
