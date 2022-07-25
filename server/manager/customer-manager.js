@@ -26,16 +26,19 @@ module.exports = function UserManager(pool) {
     return result.rowCount;
   }
 
-  async function updateUser(
-    first_name,
-    lastname,
-    email_address,
-    contact_number,
-    user_id
-  ) {
+  async function updateUserPersonal(first_name, lastname, user_id) {
     const result = await pool.query(
-      `UPDATE store_user SET first_name = $1,lastname = $2, email_address = $3,contact_number = $4 WHERE id = $5`,
-      [first_name, lastname, email_address, contact_number, user_id]
+      `UPDATE store_user SET first_name = $1,lastname = $2 WHERE id = $3`,
+      [first_name, lastname, user_id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function updateUserContact(email_address, contact_number, user_id) {
+    const result = await pool.query(
+      `UPDATE store_user SET email_address = $1, contact_number = $2 WHERE id = $3`,
+      [email_address, contact_number, user_id]
     );
 
     return result.rowCount;
@@ -52,7 +55,7 @@ module.exports = function UserManager(pool) {
 
   async function getUserByUserName(user_name) {
     const result = await pool.query(
-      `select * from store_user where user_name = $1 LIMIT 1`,
+      `select * from store_user where lower(user_name) = lower($1) LIMIT 1`,
       [user_name]
     );
 
@@ -79,7 +82,7 @@ module.exports = function UserManager(pool) {
       store_user.date_registered, 
       user_type.description AS user_type
       FROM store_user
-      INNER JOIN er_type ON store_user.user_type_id = user_type."id" 
+      INNER JOIN user_type ON store_user.user_type_id = user_type."id" 
       WHERE store_user.id = $1 LIMIT 1`,
       [user_id]
     );
@@ -121,7 +124,7 @@ module.exports = function UserManager(pool) {
     return result.rowCount;
   }
 
-  async function removeAddress(user_id, address_id) {
+  async function removeAddress(address_id, user_id) {
     const result = await pool.query(
       `DELETE FROM user_address WHERE user_id = $1 and id =$2`,
       [user_id, address_id]
@@ -145,14 +148,15 @@ module.exports = function UserManager(pool) {
       [address_id, user_id]
     );
 
-    return result.rows;
+    return result.rowCount > 0 ? result.rows[0] : null;
   }
 
   return {
     getUserByUserName,
     getUserByID,
     registerUser,
-    updateUser,
+    updateUserPersonal,
+    updateUserContact,
     updatePassword,
     getAddress,
     addAddress,
