@@ -1,7 +1,6 @@
 module.exports = function StoreManager(pool) {
   async function getProductType() {
     const result = await pool.query(`select * from product_type`);
-
     return result.rows;
   }
 
@@ -9,9 +8,11 @@ module.exports = function StoreManager(pool) {
     const result = await pool.query(
       `SELECT
       product.id, product.product_name, 
-      product.price, product.quantity, product.available, 
+      product.price,description, product.quantity, product.available, 
       product.rental_duration, product.rental_duration_type, product.product_image, 
-      product_type.name as "product_type"
+      product_type.name as "product_type",
+      0 as "selected_quantity",
+      0 as "calculated_price"
       FROM product
       INNER JOIN product_type ON product.product_type_id = product_type.id
       where available = true ORDER BY product.product_date DESC LIMIT 5`
@@ -49,9 +50,11 @@ module.exports = function StoreManager(pool) {
     const result = await pool.query(
       `SELECT
       product.id, product.product_name, 
-      product.price, product.quantity, product.available, 
+      product.price, description, product.quantity, product.available, 
       product.rental_duration, product.rental_duration_type, product.product_image, 
-      product_type.name as "product_type"
+      product_type.name as "product_type",
+      0 as "selected_quantity",
+      0 as "calculated_price"
       FROM product
       INNER JOIN product_type ON product.product_type_id = product_type.id
       where product_type.id = $1 AND available = true ${outOfOrderFilter} ${constraint}`,
@@ -90,9 +93,11 @@ module.exports = function StoreManager(pool) {
     const result = await pool.query(
       `SELECT
       product.id, product.product_name, 
-      product.price, product.quantity, product.available, 
+      product.price, description, product.quantity, product.available, 
       product.rental_duration, product.rental_duration_type, product.product_image, 
-      product_type.name as "product_type"
+      product_type.name as "product_type",
+      0 as "selected_quantity",
+      0 as "calculated_price"
       FROM product
       INNER JOIN product_type ON product.product_type_id = product_type.id
       where lower(product.product_name) LIKE $1 AND available = true ${outOfOrderFilter} ${constraint}`,
@@ -108,7 +113,9 @@ module.exports = function StoreManager(pool) {
     product.price, product.quantity, product.available, 
     product.rental_duration, product.rental_duration_type, product.product_image, 
     product_type.name as "product_type",
-    product.product_type_id
+    product.product_type_id,
+    0 as "selected_quantity",
+    0 as "calculated_price"
     FROM product
     INNER JOIN product_type ON product.product_type_id = product_type.id
     WHERE product.id = $1 AND product.available = true LIMIT 1`,
@@ -170,7 +177,7 @@ module.exports = function StoreManager(pool) {
       order_status.description as "order_status"
       FROM user_order 
       INNER JOIN order_status ON order_status.id = user_order.order_status_id
-      WHERE id = $1 AND user_id = $2 AND is_cart = $3 LIMIT 1`,
+      WHERE user_order.id = $1 AND user_id = $2 AND is_cart = $3 LIMIT 1`,
       [order_id, user_id, is_cart]
     );
 
@@ -189,6 +196,34 @@ module.exports = function StoreManager(pool) {
       INNER JOIN order_status ON order_status.id = user_order.order_status_id
       WHERE user_id = $1 AND is_cart = $2`,
       [user_id, is_cart]
+    );
+
+    return result.rows;
+  }
+
+  async function getOrderProductsCart(order_id) {
+    const result = await pool.query(
+      `SELECT
+      product."id", 
+      product.product_name, 
+      product.description,
+      product.quantity,
+      product.price,
+      user_order_product.product_price, 
+      user_order_product.product_quantity, 
+      user_order_product.sub_total, 
+      user_order_product.date_returned, 
+      user_order_product.rental_end_date, 
+      user_order_product.rental_start_date, 
+      user_order_product.rental_returned, 
+      user_order_product.has_rental, 
+      product.product_image, 
+      product_type.name as product_type
+      FROM user_order_product
+      INNER JOIN product ON user_order_product.product_id = product."id"
+      INNER JOIN product_type ON product.product_type_id = product_type."id"
+      WHERE order_id = $1`,
+      [order_id]
     );
 
     return result.rows;
@@ -224,6 +259,8 @@ module.exports = function StoreManager(pool) {
     const result = await pool.query(
       `SELECT
       user_order_product."id", 
+      product.product_name,
+      product.product_image,
       user_order_product.product_price, 
       user_order_product.product_quantity, 
       user_order_product.sub_total, 
@@ -297,7 +334,7 @@ module.exports = function StoreManager(pool) {
   async function getOrderTotals(order_id) {
     const result = await pool.query(
       `SELECT
-      SUM(user_order_product.product_price) as total_price,
+      SUM(user_order_product.sub_total) as total_price,
       SUM(user_order_product.product_quantity) as total_quantity
       FROM user_order_product
       WHERE order_id = $1`,
@@ -307,9 +344,96 @@ module.exports = function StoreManager(pool) {
     return result.rowCount > 0 ? result.rows[0] : null;
   }
 
-  async function addOrderPayment(order_id, amount, method) {}
+  async function checkOrderQuantity(order_id) {
+    const result = await pool.query(
+      `SELECT
+        SUM( CASE  
+              WHEN product.quantity<user_order_product.product_quantity OR user_order_product.product_quantity < 0 THEN 1 
+              ELSE 0
+          END  ) as "invalid_products"
+      FROM
+      user_order_product
+      INNER JOIN product ON user_order_product.product_id = product."id"
+      WHERE user_order_product.order_id = $1`,
+      [order_id]
+    );
 
-  async function updateOrder(order_id) {}
+    return result.rowCount > 0 ? result.rows[0] : null;
+  }
+
+  async function updateProductQauntity(order_id) {
+    const result = await pool.query(
+      `UPDATE product
+      SET quantity=quantity - order_products.product_quantity
+      FROM (SELECT product_id,order_id,product_quantity FROM user_order_product) AS order_products
+      WHERE product.id = order_products.product_id AND order_products.order_id = $1;`,
+      [order_id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function updateProductQauntityReverse(order_id) {
+    const result = await pool.query(
+      `UPDATE product
+      SET quantity=quantity + order_products.product_quantity
+      FROM (SELECT product_id,order_id,product_quantity FROM user_order_product) AS order_products
+      WHERE product.id = order_products.product_id AND order_products.order_id = $1;`,
+      [order_id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function addOrderPayment(amount, method, payment_details, order_id) {
+    const result = await pool.query(
+      `INSERT INTO user_order_payment(amount,method,payment_details,user_order_id) 
+      VALUES($1, $2, $3, $4)`,
+      [amount, method, payment_details, order_id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function clearPayments(order_id) {
+    const result = await pool.query(
+      `DELETE FROM user_order_payment WHERE user_order_id = $1;`,
+      [order_id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function updateOrder(
+    order_total,
+    order_items,
+    is_delivery,
+    delivery_address,
+    order_status_id,
+    order_id
+  ) {
+    const result = await pool.query(
+      `UPDATE user_order
+      SET order_date = CURRENT_TIMESTAMP,
+      order_total = $1,
+      order_items = $2,
+      is_delivery = $3,
+      delivery_address = $4,
+      order_status_id = $5,
+      is_cart = false
+      WHERE user_order.id = $6;`,
+      [
+        order_total,
+        order_items,
+        is_delivery,
+        delivery_address,
+        order_status_id,
+        order_id,
+      ]
+    );
+
+    return result.rowCount;
+  }
 
   return {
     getProductType,
@@ -331,5 +455,10 @@ module.exports = function StoreManager(pool) {
     removeOrderProduct,
     clearCart,
     getProductsTop,
+    updateProductQauntity,
+    checkOrderQuantity,
+    clearPayments,
+    updateProductQauntityReverse,
+    getOrderProductsCart,
   };
 };
