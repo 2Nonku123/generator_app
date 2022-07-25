@@ -2,5 +2,7 @@
 
 Github Actions
 
-(https://github.com/github/docs/actions/workflows/node.js.yml/badge.svg)
 
+
+
+https://github.com/2Nonku123/generator_app/actions/workflows/node.js.yml/badge.svg
