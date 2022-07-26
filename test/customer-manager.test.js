@@ -145,7 +145,7 @@ describe("The Generator API", function () {
     }
   });
 
-  it("should show the item the added to the cart", async () => {
+  it("should show the items added to the cart", async () => {
     const response = await supertest(app)
       .post("/cart")
       .set({ Authorization: `Bearer ${token}` });
