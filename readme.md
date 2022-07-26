@@ -8,3 +8,5 @@ Github Actions Test
 
 ![https://github.com/2Nonku123/generator_app/actions/workflows/node.js.yml/badge.svg](https://github.com/2Nonku123/generator_app/actions/workflows/node.js.yml/badge.svg)
 
+App deployed at (https://genxshop.herokuapp.com/)
+
