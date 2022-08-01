@@ -426,9 +426,11 @@ app.post(
 );
 
 app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
-  const { address_id } = req.params;
+  //const { address_id } = req.params;
+  const { housenumber, street, province, postal_code, address_id } = req.body;
 
   let scheme = Joi.object({
+    address_id: Joi.number().required(),
     housenumber: Joi.number().min(0).max(99999).required(),
     street: Joi.string().min(3).max(200).required(),
     province: Joi.string().min(5).max(50).required(),
@@ -447,7 +449,7 @@ app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
   }
 
   customerManager
-    .updateAddress(housenumber, street, province, postal_code, req.user.user_id)
+    .updateAddress(housenumber, street, province, postal_code, address_id, req.user.user_id)
     .then((updateStatus) =>
       res.json({
         status: updateStatus > 0 ? "success" : "error",
@@ -1054,10 +1056,11 @@ app.get(
 
 ////////////////////////////////////////////////////////////
 
-// Admin routes
+// Admin routes user
 
-// Select Records
-app.get("/admin/user/", (req, res) => {
+
+  // Select Users
+app.get("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   userAdminManager
     .getUsers()
     .then((userResult) => res.json(userResult))
@@ -1068,8 +1071,9 @@ app.get("/admin/user/", (req, res) => {
 });
 
 // Select Record
-app.get("/admin/user/:id", (req, res) => {
-  let con = Connection.NewConnection();
+
+ 
+app.get("/admin/user/:id", checkAdminAuthorizationToken, async (req, res) => {
   let iObject = { id: req.params.id };
   let scheme = Joi.object({
     id: Joi.number().integer().required(),
@@ -1078,39 +1082,22 @@ app.get("/admin/user/:id", (req, res) => {
   let sResult = scheme.validate(iObject);
 
   if (sResult.error !== undefined) {
-    res.status(400).send(sResult.error.details[0].message);
+    res.json({ status: "error", message: sResult.error.details[0].message });
+    
     return;
   }
 
   userAdminManager
-    .getUsers()
+    .getUser(iObject.id)
     .then((userResult) => res.json(userResult))
     .catch((error) => res.json(null));
 
-  con.connect(function (err) {
-    if (err) {
-      res.status(400).send("Could not load store_user record");
-      return;
-    }
-
-    con.query(
-      `SELECT id, first_name, lastname, user_name, password, email_address, contact_number, date_registered, user_type_id, locked, locked_date 
-	 FROM store_user WHERE id = ? `,
-      [iObject.id],
-      function (err, result, fields) {
-        if (err || result.length < 1) {
-          res.status(400).send("Could not load store_user record");
-        } else {
-          res.send(result[0]);
-        }
-        con.end();
-      }
-    );
-  });
+  
 });
 
-// Insert Record
-app.post("/admin/user/", (req, res) => {
+
+  // Insert User
+app.post("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   let scheme = Joi.object({
     first_name: Joi.string().min(1).required(),
     lastname: Joi.string().min(1).required(),
@@ -1124,28 +1111,28 @@ app.post("/admin/user/", (req, res) => {
   let sResult = scheme.validate(req.body);
 
   if (sResult.error !== undefined) {
-    res.status(400).send();
+
 
     res.json({ status: "error", message: sResult.error.details[0].message });
     return;
   }
 
   const iObject = {
-    first_name: req.body.first_name.trim(),
-    lastname: req.body.lastname.trim(),
-    user_name: req.body.user_name.trim(),
+    first_name: req.body.first_name,
+    lastname: req.body.lastname,
+    user_name: req.body.user_name,
     password: bcrypt.hashSync(req.body.password, 10),
-    email_address: req.body.email_address.trim(),
-    contact_number: req.body.contact_number.trim(),
-    user_type_id: req.body.user_type_id.trim(),
+    email_address: req.body.email_address,
+    contact_number: req.body.contact_number,
+    user_type_id: req.body.user_type_id,
   };
 
   userAdminManager
     .addUser(iObject)
-    .then((addResult) =>
+    .then((result) =>
       res.json({
-        status: addResult > 0 ? "success" : "error",
-        message: addResult > 0 ? "User added" : "Could not add user",
+        status: result > 0 ? "success" : "error",
+        message: result > 0 ? "User added" : "Could not add user",
       })
     )
     .catch((error) =>
@@ -1153,11 +1140,14 @@ app.post("/admin/user/", (req, res) => {
     );
 });
 
-// Update Record
-app.put("/admin/user/", (req, res) => {
-  let con = Connection.NewConnection();
-  let scheme = Joi.object({
-    id: Joi.number().integer().required(),
+
+  // Update User
+app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
+  //async function (req, res) {
+    
+    let scheme = Joi.object({
+
+      id: Joi.number().integer().required(),
     first_name: Joi.string().min(1).required(),
     lastname: Joi.string().min(1).required(),
     user_name: Joi.string().min(1).required(),
@@ -1165,6 +1155,444 @@ app.put("/admin/user/", (req, res) => {
     contact_number: Joi.string().min(1).required(),
     user_type_id: Joi.number().integer().required(),
     locked: Joi.bool().required(),
+  });
+     
+  let sResult = scheme.validate(req.body);
+
+  if (sResult.error !== undefined) {
+    res.json({ status: "error", message:sResult.error.details[0].message });
+    return;
+
+  } 
+    
+  let iObject = {
+    id: req.body.id,
+    first_name: req.body.first_name,
+    lastname: req.body.lastname,
+    user_name: req.body.user_name,
+    email_address: req.body.email_address,
+    contact_number: req.body.contact_number,
+    user_type_id: req.body.user_type_id,
+    locked: req.body.locked,
+  };
+
+  userAdminManager
+    .updateUser(iObject)
+    .then((addResult) =>
+      res.json({
+        status: addResult > 0 ? "success" : "error",
+        message:
+          addResult > 0
+            ? "User updated"
+            : "Could not update user / User not found",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not udpate user / User not found",
+      })
+    );
+});
+
+// Delete User
+app.delete(
+  "/admin/user/:id",
+  checkAdminAuthorizationToken,
+  async (req, res) => {
+    let iObject = { id: req.params.id };
+    let scheme = Joi.object({
+      id: Joi.number().integer().required(),
+    });
+
+    let sResult = scheme.validate(iObject);
+
+    if (sResult.error !== undefined) {
+      res.json({ status: "error", message: sResult.error.details[0].message });
+      return;
+    }
+    userAdminManager
+      .deleteUser(iObject.id)
+      .then((result) =>
+        res.json({
+          status: result > 0 ? "success" : "error",
+          message:
+            result > 0
+              ? "User deleted"
+              : "Could not delete user / User not found",
+        })
+      )
+      .catch((error) =>
+        res.json({
+          status: "error",
+          message: "Could not delete user / User not found",
+        })
+      );
+  }
+);
+
+    
+
+app.put(
+  "/admin/user/:user_id/password",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    let iObject = {
+      user_id: req.params.user_id,
+      password: req.body.password,
+      confirm_password: req.body.confirm_password,
+    };
+    let scheme = Joi.object({
+      user_id: Joi.number().integer().required(),
+      confirm_password: Joi.string().min(5).max(15).required(),
+      password: Joi.string().min(5).max(15).required(),
+    });
+    let sResult = scheme.validate(iObject);
+
+    if (sResult.error !== undefined) {
+      res.json({ status: "error", message: sResult.error.details[0].message });
+      return;
+    } else if (iObject.password != iObject.confirm_password) {
+      res.json({
+        status: "error",
+        message: "Both passwords must match",
+      });
+    }
+    const encrypted_password = bcrypt.hashSync(iObject.password, 10);
+    customerManager
+      .updatePassword(encrypted_password, iObject.user_id)
+      .then((updateStatus) =>
+        res.json({
+          status: updateStatus > 0 ? "success" : "error",
+          message:
+            updateStatus > 0 ? "Password updated" : "Could not update password",
+        })
+      )
+      .catch((error) =>
+        res.json({
+          status: "error",
+          message: "Could not update password",
+        })
+      );
+  }
+);
+app.get(
+  "/admin/user/:user_id/address",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const { user_id } = req.params;
+
+    let scheme = Joi.object({
+      user_id: Joi.number().min(1).required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.status(400).send(sResult.error.details[0].message);
+      return;
+    }
+    customerManager
+      .getAddressAll(user_id)
+      .then((addressData) => res.json(addressData))
+      .catch((error) => res.json([]));
+  }
+);
+
+app.get(
+  "/admin/user/:user_id/address/:address_id",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const { user_id, address_id } = req.params;
+
+    let scheme = Joi.object({
+      user_id: Joi.number().min(1).required(),
+      address_id: Joi.number().min(1).required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.status(400).send(sResult.error.details[0].message);
+      return;
+    }
+
+    customerManager
+      .getAddress(address_id, user_id)
+      .then((addressData) => res.json(addressData))
+      .catch((error) => res.json(null));
+  }
+);
+
+app.post(
+  "/admin/user/:user_id/address",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const { housenumber, street, province, postal_code } = req.body;
+    const user_id = req.params.user_id;
+    req.body.user_id = user_id;
+
+    let scheme = Joi.object({
+      user_id: Joi.number().required(),
+      housenumber: Joi.number().min(0).max(99999).required(),
+      street: Joi.string().min(3).max(200).required(),
+      province: Joi.string().min(5).max(50).required(),
+      postal_code: Joi.string().min(4).max(4).required(),
+    });
+
+    let sResult = scheme.validate(req.body);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+
+      return;
+    }
+ 
+    customerManager
+    .addAddress(housenumber, street, province, postal_code, user_id)
+    .then((updateStatus) =>
+      res.json({
+        status: updateStatus > 0 ? "success" : "error",
+        message: updateStatus > 0 ? "Address added" : "Could not add address",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not add address",
+      })
+    );
+}
+);
+
+app.put(
+"/admin/user/:user_id/address",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  const { housenumber, street, province, postal_code, address_id } = req.body;
+  const user_id = req.params.user_id;
+  req.body.user_id = user_id;
+
+  let scheme = Joi.object({
+    user_id: Joi.number().required(),
+    address_id: Joi.number().required(),
+    housenumber: Joi.number().min(0).max(99999).required(),
+    street: Joi.string().min(3).max(200).required(),
+    province: Joi.string().min(5).max(50).required(),
+    postal_code: Joi.string().min(4).max(4).required(),
+  });
+
+  let sResult = scheme.validate(req.body);
+
+  if (sResult.error !== undefined) {
+    res.json({
+      status: "error",
+      message: sResult.error.details[0].message,
+    });
+
+    return;
+  }
+
+  customerManager
+    .updateAddress(
+      housenumber,
+      street,
+      province,
+      postal_code,
+      address_id,
+      user_id
+    )
+    .then((updateStatus) =>
+      res.json({
+        status: updateStatus > 0 ? "success" : "error",
+        message:
+          updateStatus > 0 ? "Address updated" : "Could not update address",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not update address",
+      })
+    );
+}
+);
+
+app.delete(
+"/admin/user/:user_id/address/:address_id",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  const { user_id, address_id } = req.params;
+
+  let scheme = Joi.object({
+    user_id: Joi.number().required(),
+    address_id: Joi.number().min(1).required(),
+  });
+
+  let sResult = scheme.validate(req.params);
+
+  if (sResult.error !== undefined) {
+    res.json({
+      status: "error",
+      message: sResult.error.details[0].message,
+    });
+
+    return;
+  }
+
+  customerManager
+    .removeAddress(address_id, user_id)
+    .then((updateStatus) =>
+      res.json({
+        status: updateStatus > 0 ? "success" : "error",
+        message:
+          updateStatus > 0 ? "Address removed" : "Could not find address",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not find address",
+      })
+    );
+}
+);
+
+///// admin product type
+
+app.get(
+"/admin/category/",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  productAdminManager
+    .getProductType()
+    .then((productTypes) => res.json(productTypes))
+    .catch((error) => res.json([]));
+}
+);
+
+///// admin products
+
+app.get(
+"/admin/category/product/:type_id",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  let { orderby, sort, outofstock } = req.query;
+
+  orderby = orderby == null ? "" : orderby;
+  sort = sort == null ? "" : sort;
+  outofstock = outofstock == null ? "" : outofstock;
+
+  const type_id = req.params.type_id;
+
+  let scheme = Joi.object({
+    product_id: Joi.number().min(1).required(),
+  });
+
+  let sResult = scheme.validate({ product_id: type_id });
+
+  if (sResult.error !== undefined) {
+    res.json([]);
+    return;
+  }
+
+  productAdminManager
+    .getProducts(
+      type_id,
+      orderby,
+      sort.toLowerCase() == "desc",
+      outofstock == "yes"
+    )
+    .then((productTypes) => res.json(productTypes))
+    .catch((error) => res.json([]));
+}
+);
+
+app.get(
+"/admin/product/search/:search_name",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  let { orderby, sort, outofstock } = req.query;
+  const search = req.params.search_name;
+
+  orderby = orderby == null ? "" : orderby;
+  sort = sort == null ? "" : sort;
+  outofstock = outofstock == null ? "" : outofstock;
+
+  let scheme = Joi.object({
+    search_name: Joi.string().min(3).required(),
+  });
+
+  let sResult = scheme.validate({ search_name: search });
+
+  if (sResult.error !== undefined) {
+    res.json([]);
+    return;
+  }
+
+  productAdminManager
+    .getProductsSearch(
+      search,
+      orderby,
+      sort.toLowerCase() == "desc",
+      outofstock == "yes"
+    )
+    .then((productTypes) => res.json(productTypes))
+    .catch((error) => res.json([]));
+}
+);
+
+app.get(
+"/admin/product/:product_id",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  const prod_id = req.params.product_id;
+
+  let scheme = Joi.object({
+    product_id: Joi.number().min(1).required(),
+  });
+
+  let sResult = scheme.validate({ product_id: prod_id });
+
+  if (sResult.error !== undefined) {
+    res.sendStatus(404);
+    return;
+  }
+
+  productAdminManager
+    .getProduct(prod_id)
+    .then((product) => {
+      if (product != null) {
+        res.json(product);
+  
+    
+        }else {
+          res.sendStatus(404);
+          
+      }
+    })
+    .catch((error) => res.sendStatus(404));
+}
+);
+
+app.post(
+"/admin/product/",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  let scheme = Joi.object({
+    product_name: Joi.string().min(1).required(),
+    description: Joi.string().min(1).required().empty().optional(),
+    price: Joi.number().required(),
+    quantity: Joi.number().integer().required(),
+    available: Joi.bool().required(),
+    is_rentalble: Joi.bool().required(),
+    rental_duration: Joi.number().integer().required(),
+    rental_duration_type: Joi.number().integer().required(),
+    product_type_id: Joi.number().integer().required(),
+    product_image: Joi.string().min(1).required().empty().optional(),
   });
 
   let sResult = scheme.validate(req.body);
@@ -1174,84 +1602,129 @@ app.put("/admin/user/", (req, res) => {
     return;
   }
   let iObject = {
-    id: req.body.id.trim(),
-    first_name: req.body.first_name.trim(),
-    lastname: req.body.lastname.trim(),
-    user_name: req.body.user_name.trim(),
-    email_address: req.body.email_address.trim(),
-    contact_number: req.body.contact_number.trim(),
-    user_type_id: req.body.user_type_id.trim(),
-    locked: req.body.locked.trim(),
+    product_name: req.body.product_name,
+    description: req.body.description,
+    price: req.body.price,
+    quantity: req.body.quantity,
+    available: req.body.available,
+    is_rentalble: req.body.is_rentalble,
+    rental_duration: req.body.rental_duration,
+    rental_duration_type: req.body.rental_duration_type,
+    product_type_id: req.body.product_type_id,
+    product_image: req.body.product_image,
   };
 
-  con.connect(function (err) {
-    if (err) {
-      res.status(400).send("Could not update store_user");
-      return;
-    }
-
-    con.query(
-      `UPDATE store_user SET first_name = ?, lastname = ?, user_name = ?,  email_address = ?, contact_number = ?, user_type_id = ?, locked = ? WHERE id = ?`,
-      [
-        iObject.first_name,
-        iObject.lastname,
-        iObject.user_name,
-
-        iObject.email_address,
-        iObject.contact_number,
-
-        iObject.user_type_id,
-        iObject.locked,
-
-        iObject.id,
-      ],
-      function (err, result, fields) {
-        if (err) {
-          res.status(400).send("Could not update store_user");
-        } else {
-          res.send(jRes.getResponse(1, "store_user Updated"));
-        }
-        con.end();
-      }
+  productAdminManager
+    .addProduct(iObject)
+    .then((updateStatus) =>
+      res.json({
+        status: updateStatus > 0 ? "success" : "error",
+        message: updateStatus > 0 ? "Product added" : "Could not add product",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not add product",
+      })
     );
-  });
-});
+}
+);
 
-// Delete Record
-app.delete("/admin/user/:id", (req, res) => {
-  let con = Connection.NewConnection();
-  let iObject = { id: req.params.id };
+app.put(
+"/admin/product/",
+checkAdminAuthorizationToken,
+async function (req, res) {
   let scheme = Joi.object({
-    id: Joi.number().integer().required(),
+    id: Joi.number().required(),
+    product_name: Joi.string().min(1).required(),
+    description: Joi.string().min(1).required().empty().optional(),
+    price: Joi.number().required(),
+    quantity: Joi.number().integer().required(),
+    available: Joi.bool().required(),
+    is_rentalble: Joi.bool().required(),
+    rental_duration: Joi.number().integer().required(),
+    rental_duration_type: Joi.number().integer().required(),
+    product_type_id: Joi.number().integer().required(),
+    product_image: Joi.string().min(1).required().empty().optional(),
   });
 
-  let sResult = scheme.validate(iObject);
+  let sResult = scheme.validate(req.body);
 
   if (sResult.error !== undefined) {
     res.status(400).send(sResult.error.details[0].message);
     return;
   }
+  let iObject = {
+    product_name: req.body.product_name,
+    description: req.body.description,
+    price: req.body.price,
+    quantity: req.body.quantity,
+    available: req.body.available,
+    is_rentalble: req.body.is_rentalble,
+    rental_duration: req.body.rental_duration,
+    rental_duration_type: req.body.rental_duration_type,
+    product_type_id: req.body.product_type_id,
+    product_image: req.body.product_image,
+    id: req.body.id,
+  };
 
-  con.connect(function (err) {
-    if (err) {
-      res.status(400).send("Could not delete store_user record");
-      return;
-    }
-
-    con.query(
-      `DELETE FROM store_user WHERE id = ? `,
-      [iObject.id],
-      function (err, result, fields) {
-        if (err || result.affectedRows < 1) {
-          res.status(400).send("Could not delete store_user record");
-        } else {
-          res.send(jRes.getResponse(1, "Record Deleted"));
-        }
-        con.end();
-      }
+  productAdminManager
+    .updateProduct(iObject)
+    .then((updateStatus) =>
+      res.json({
+        status: updateStatus > 0 ? "success" : "error",
+        message:
+          updateStatus > 0 ? "Product updated" : "Could not update product",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not update product",
+      })
     );
+}
+);
+
+app.delete(
+"/admin/product/:product_id",
+checkAdminAuthorizationToken,
+async function (req, res) {
+  const { product_id } = req.params;
+
+  let scheme = Joi.object({
+    product_id: Joi.number().required(),
   });
-});
+
+  let sResult = scheme.validate(req.params);
+
+  if (sResult.error !== undefined) {
+    res.json({
+      status: "error",
+      message: sResult.error.details[0].message,
+    });
+
+    return;
+  }
+
+  productAdminManager
+    .removeProduct(product_id)
+    .then((updateStatus) =>
+      res.json({
+        status: updateStatus > 0 ? "success" : "error",
+        message:
+          updateStatus > 0 ? "Product removed" : "Could not find product",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not find product",
+      })
+    );
+}
+);
 
 ////////////////////////////////////////////////////////////
 
