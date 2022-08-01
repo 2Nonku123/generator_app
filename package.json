@@ -2,7 +2,7 @@
   "name": "generator_app",
   "version": "1.0.0",
   "description": "",
-  "main": "customer-manager.test.js",
+  "main": "customer-registration.test.js",
   "directories": {
     "test": "test"
   },
