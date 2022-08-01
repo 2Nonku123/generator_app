@@ -111,7 +111,7 @@ app.post("/api/login", async function (req, res) {
       } else {
         res.json({
           status: "error",
-          message: "User could not be found, wrong user name or password",
+          message: "Please enter the correct username or password",
           token: "",
         });
       }
@@ -119,7 +119,7 @@ app.post("/api/login", async function (req, res) {
     .catch((error) => {
       res.json({
         status: "error",
-        message: "User could not be found, wrong user name or password",
+        message: "Please enter the correct username or password",
         token: "",
       });
     });
@@ -190,7 +190,7 @@ app.post("/api/signup", async function (req, res) {
     });
     res.json({
       status: "success",
-      message: "Signup success",
+      message: "Signup successful",
       token: accessKey,
     });
   } else {
@@ -210,7 +210,7 @@ app.get("/profile/", checkAuthorizationToken, async function (req, res) {
     .getProfile(req.user.user_id)
     .then((profileInfo) => res.json(profileInfo))
     .catch((error) =>
-      res.json({ status: "error", message: "Could not load profile" })
+      res.json({ status: "error", message: "failed to load profile" })
     );
 });
 
@@ -244,13 +244,13 @@ app.put(
           message:
             updateStatus > 0
               ? "Personal information updated"
-              : "Could not update personal information",
+              : "Failed to update personal information",
         })
       )
       .catch((error) =>
         res.json({
           status: "error",
-          message: "Could not update personal information",
+          message: "Failed to update personal information",
         })
       );
   }
@@ -283,13 +283,13 @@ app.put("/profile/contact", checkAuthorizationToken, async function (req, res) {
         message:
           updateStatus > 0
             ? "Contact information updated"
-            : "Could not update contact information",
+            : "failed to update contact information",
       })
     )
     .catch((error) =>
       res.json({
         status: "error",
-        message: "Could not update contact information",
+        message: "failed to update contact information",
       })
     );
 });
@@ -329,7 +329,7 @@ app.put(
         res.json({
           status: updateStatus > 0 ? "success" : "error",
           message:
-            updateStatus > 0 ? "Password updated" : "Could not update password",
+            updateStatus > 0 ? "Password succsesfully updated" : "Could not update password, please try again",
         })
       )
       .catch((error) =>
@@ -657,7 +657,7 @@ app.post("/cart/", checkAuthorizationToken, async function (req, res) {
   if (cartInfo == null) {
     res.json({
       status: "error",
-      message: "Could not add item to cart",
+      message: "Item Could not be added to the cart",
     });
 
     return;
@@ -760,7 +760,7 @@ app.put("/cart/", checkAuthorizationToken, async function (req, res) {
       status: product.quantity <= 0 ? "error" : "success",
       message:
         product.quantity <= 0
-          ? "Product is out of stock"
+          ? "Product is currently out of stock"
           : `Your selected quantity is too high, only ${product.quantity} item(s) are in stock`,
     });
     return;
@@ -782,7 +782,7 @@ app.put("/cart/", checkAuthorizationToken, async function (req, res) {
 
   res.send({
     status: result > 0 ? "success" : "error",
-    message: result > 0 ? "Cart item updated" : "Could not update cart item",
+    message: result > 0 ? "your Cart item has been updated" : "Could not update cart item",
   });
 });
 
@@ -801,7 +801,7 @@ app.delete("/cart/", checkAuthorizationToken, async function (req, res) {
 
   res.send({
     status: result > 0 ? "success" : "error",
-    message: result > 0 ? "Cart Cleared" : "Cart is empty",
+    message: result > 0 ? "Your Cart is Cleared" : "Your Cart is empty",
   });
 });
 
@@ -836,7 +836,7 @@ app.delete(
 
     res.send({
       status: result > 0 ? "success" : "error",
-      message: result > 0 ? "Item removed from cart" : "Item not found in cart",
+      message: result > 0 ? "Item has been removed from your cart" : "Item not found in cart",
     });
   }
 );
@@ -863,7 +863,7 @@ app.post(
         .max(16)
         .required()
         .messages({
-          "string.pattern.base": `Card Number must be must be 16 digital values`,
+          "string.pattern.base": `Card Number must be digital values`,
         }),
       card_month: Joi.number().min(1).max(12).required(),
       card_year: Joi.number().min(20).max(99).required(),
@@ -896,7 +896,7 @@ app.post(
     if (cartInfo == null) {
       res.json({
         status: "error",
-        message: "Cart does not have any items",
+        message: "There are no Items in the cart",
       });
       return;
     }
@@ -906,7 +906,7 @@ app.post(
     if (cartTotal.total_quantity == 0 || cartTotal.total_price == 0) {
       res.json({
         status: "error",
-        message: "Cart does not have any items",
+        message: "There are no Items in the cart",
       });
       return;
     }
@@ -1011,7 +1011,7 @@ app.get("/order/:order_id", checkAuthorizationToken, async function (req, res) {
       res.json({ status: "success", message: "", order: orderInfo })
     )
     .catch((error) =>
-      res.json({ status: "error", message: "Order could not be found" })
+      res.json({ status: "error", message: "Your Order could not be found" })
     );
 });
 
@@ -1054,10 +1054,10 @@ app.get(
 
 ////////////////////////////////////////////////////////////
 
-// Admin routes
+// Admin routes for user
 
-// Select Records
-app.get("/admin/user/", (req, res) => {
+// Select users
+app.get("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   userAdminManager
     .getUsers()
     .then((userResult) => res.json(userResult))
@@ -1067,9 +1067,8 @@ app.get("/admin/user/", (req, res) => {
     });
 });
 
-// Select Record
-app.get("/admin/user/:id", (req, res) => {
-  let con = Connection.NewConnection();
+// Select user
+app.get("/admin/user/:id", checkAdminAuthorizationToken, async (req, res) => {
   let iObject = { id: req.params.id };
   let scheme = Joi.object({
     id: Joi.number().integer().required(),
@@ -1078,39 +1077,39 @@ app.get("/admin/user/:id", (req, res) => {
   let sResult = scheme.validate(iObject);
 
   if (sResult.error !== undefined) {
-    res.status(400).send(sResult.error.details[0].message);
+    res.json({status:"error", message: sResult.error.details[0].message});
     return;
   }
 
   userAdminManager
-    .getUsers()
+    .getUser(iObject.id)
     .then((userResult) => res.json(userResult))
     .catch((error) => res.json(null));
 
-  con.connect(function (err) {
-    if (err) {
-      res.status(400).send("Could not load store_user record");
-      return;
-    }
+  // con.connect(function (err) {
+  //   if (err) {
+  //     res.status(400).send("Could not load store_user record");
+  //     return;
+  //   }
 
-    con.query(
-      `SELECT id, first_name, lastname, user_name, password, email_address, contact_number, date_registered, user_type_id, locked, locked_date 
-	 FROM store_user WHERE id = ? `,
-      [iObject.id],
-      function (err, result, fields) {
-        if (err || result.length < 1) {
-          res.status(400).send("Could not load store_user record");
-        } else {
-          res.send(result[0]);
-        }
-        con.end();
-      }
-    );
-  });
+  //   con.query(
+  //     `SELECT id, first_name, lastname, user_name, password, email_address, contact_number, date_registered, user_type_id, locked, locked_date 
+	//  FROM store_user WHERE id = ? `,
+  //     [iObject.id],
+  //     function (err, result, fields) {
+  //       if (err || result.length < 1) {
+  //         res.status(400).send("Could not load store_user record");
+  //       } else {
+  //         res.send(result[0]);
+  //       }
+  //       con.end();
+  //     }
+  //   );
+  // });
 });
 
-// Insert Record
-app.post("/admin/user/", (req, res) => {
+// Insert user
+app.post("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   let scheme = Joi.object({
     first_name: Joi.string().min(1).required(),
     lastname: Joi.string().min(1).required(),
@@ -1131,13 +1130,13 @@ app.post("/admin/user/", (req, res) => {
   }
 
   const iObject = {
-    first_name: req.body.first_name.trim(),
-    lastname: req.body.lastname.trim(),
-    user_name: req.body.user_name.trim(),
+    first_name: req.body.first_name,
+    lastname: req.body.lastname,
+    user_name: req.body.user_name,
     password: bcrypt.hashSync(req.body.password, 10),
-    email_address: req.body.email_address.trim(),
-    contact_number: req.body.contact_number.trim(),
-    user_type_id: req.body.user_type_id.trim(),
+    email_address: req.body.email_address,
+    contact_number: req.body.contact_number,
+    user_type_id: req.body.user_type_id,
   };
 
   userAdminManager
@@ -1153,9 +1152,8 @@ app.post("/admin/user/", (req, res) => {
     );
 });
 
-// Update Record
-app.put("/admin/user/", (req, res) => {
-  let con = Connection.NewConnection();
+// Update user
+app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   let scheme = Joi.object({
     id: Joi.number().integer().required(),
     first_name: Joi.string().min(1).required(),
@@ -1170,56 +1168,72 @@ app.put("/admin/user/", (req, res) => {
   let sResult = scheme.validate(req.body);
 
   if (sResult.error !== undefined) {
-    res.status(400).send(sResult.error.details[0].message);
+    res.json({status: "error", message: sResult.error.details[0].message});
     return;
   }
   let iObject = {
-    id: req.body.id.trim(),
-    first_name: req.body.first_name.trim(),
-    lastname: req.body.lastname.trim(),
-    user_name: req.body.user_name.trim(),
-    email_address: req.body.email_address.trim(),
-    contact_number: req.body.contact_number.trim(),
-    user_type_id: req.body.user_type_id.trim(),
-    locked: req.body.locked.trim(),
+    id: req.body.id,
+    first_name: req.body.first_name,
+    lastname: req.body.lastname,
+    user_name: req.body.user_name,
+    email_address: req.body.email_address,
+    contact_number: req.body.contact_number,
+    user_type_id: req.body.user_type_id,
+    locked: req.body.locked,
   };
 
-  con.connect(function (err) {
-    if (err) {
-      res.status(400).send("Could not update store_user");
-      return;
-    }
-
-    con.query(
-      `UPDATE store_user SET first_name = ?, lastname = ?, user_name = ?,  email_address = ?, contact_number = ?, user_type_id = ?, locked = ? WHERE id = ?`,
-      [
-        iObject.first_name,
-        iObject.lastname,
-        iObject.user_name,
-
-        iObject.email_address,
-        iObject.contact_number,
-
-        iObject.user_type_id,
-        iObject.locked,
-
-        iObject.id,
-      ],
-      function (err, result, fields) {
-        if (err) {
-          res.status(400).send("Could not update store_user");
-        } else {
-          res.send(jRes.getResponse(1, "store_user Updated"));
-        }
-        con.end();
-      }
+  userAdminManager
+    .updateUser(iObject)
+    .then((addResult) =>
+      res.json({
+        status: addResult > 0 ? "success" : "error",
+        message:
+          addResult > 0
+            ? "User updated"
+            : "Could not update user / User not found",
+      })
+    )
+    .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not udpate user / User not found",
+      })
     );
-  });
+  // con.connect(function (err) {
+  //   if (err) {
+  //     res.status(400).send("Could not update store_user");
+  //     return;
+  //   }
+
+  //   con.query(
+  //     `UPDATE store_user SET first_name = ?, lastname = ?, user_name = ?,  email_address = ?, contact_number = ?, user_type_id = ?, locked = ? WHERE id = ?`,
+  //     [
+  //       iObject.first_name,
+  //       iObject.lastname,
+  //       iObject.user_name,
+
+  //       iObject.email_address,
+  //       iObject.contact_number,
+
+  //       iObject.user_type_id,
+  //       iObject.locked,
+
+  //       iObject.id,
+  //     ],
+  //     function (err, result, fields) {
+  //       if (err) {
+  //         res.status(400).send("Could not update store_user");
+  //       } else {
+  //         res.send(jRes.getResponse(1, "store_user Updated"));
+  //       }
+  //       con.end();
+  //     }
+  //   );
+  // });
 });
 
-// Delete Record
-app.delete("/admin/user/:id", (req, res) => {
-  let con = Connection.NewConnection();
+// Delete user
+app.delete("/admin/user/:id", checkAdminAuthorizationToken, async (req, res) => {
   let iObject = { id: req.params.id };
   let scheme = Joi.object({
     id: Joi.number().integer().required(),
@@ -1231,26 +1245,69 @@ app.delete("/admin/user/:id", (req, res) => {
     res.status(400).send(sResult.error.details[0].message);
     return;
   }
+  userAdminManager
+  .deleteUser(iObject.id)
+  .then((result) =>
+    res.json({
+      status: result > 0 ? "success" : "error",
+      message:
+        result > 0
+          ? "User deleted"
+          : "Could not delete user / User not found",
+    })
+  )
+  .catch((error) =>
+    res.json({
+      status: "error",
+      message: "Could not delete user / User not found",
+    })
+  );
+});
 
-  con.connect(function (err) {
-    if (err) {
-      res.status(400).send("Could not delete store_user record");
-      return;
-    }
+//////////////// admin user address routes
 
-    con.query(
-      `DELETE FROM store_user WHERE id = ? `,
-      [iObject.id],
-      function (err, result, fields) {
-        if (err || result.affectedRows < 1) {
-          res.status(400).send("Could not delete store_user record");
-        } else {
-          res.send(jRes.getResponse(1, "Record Deleted"));
-        }
-        con.end();
-      }
-    );
+app.put("/admin/user/:user_id/password", checkAdminAuthorizationToken, async function(req,res){
+  let iObject ={
+    user_id: req.params.user_id,
+    password: req.body.password,
+    confirm_password: req.body.confirm_password,
+  };
+
+  let scheme = Joi.object({
+    user_id: Joi.number().integer().required(),
+    confirm_password: Joi.string().min(5).max(15).required(),
+    password: Joi.string().min(5).max(15).required(),
   });
+
+  let sResult = scheme.validate(iObject);
+
+  if (sResults.error !== undefined) {
+    res.json({ status: "error", message: sResult.error.details[0].message });
+    return;
+  }else if(iObject.password != iObject.confirm_password){
+    res.json({
+      status: "error",
+      message: "Both passwords must match",
+    });
+  }
+
+  const encrypted_password = bcrypt.hashSync(iObject.password, 10);
+  customerManager
+  .updatePassword(encrypted_password, iObject.user_id)
+  .then((updateStatus) =>
+    res.json({
+      status: updateStatus > 0 ? "success" : "error",
+      message:
+        updateStatus > 0 ? "Password updated" : "Could not update password",
+    })
+  )
+  .catch((error) =>
+    res.json({
+      status: "error",
+      message: "Could not update password",
+    })
+  );
+
 });
 
 ////////////////////////////////////////////////////////////
