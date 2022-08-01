@@ -36,7 +36,7 @@ describe("The Payment API", function () {
     }
     
   });
-  it("should not allow payment if there are are no items on cart", async () => {
+  it("should not allow user to pay if there is insufficient stock of items on cart", async () => {
     const response = await supertest(app)
     .post("/cart/complete/card")
     .set({ Authorization: `Bearer ${token}`});

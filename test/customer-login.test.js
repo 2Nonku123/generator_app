@@ -15,6 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 const DATABASE_URL = process.env.DATABASE_URL;
 let assert = require("assert");
+
 describe("The Customer login API", function () {
 
     it("should allow registered user to be able to log in", async () => {

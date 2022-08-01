@@ -949,7 +949,7 @@ app.post(
 
       res.json({
         status: "error",
-        message: "Could not complete cart order, status 102",
+        message: "Could not complete cart order, status 302",
       });
       return;
     }

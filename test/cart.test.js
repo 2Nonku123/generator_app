@@ -28,9 +28,9 @@ it("should not allow user to purchase a product out of stock", async () => {
       
       const { status, message } = response.body;
       if (status == "error") {
-      assert("0", message);
-      } else {
       assert("Product is out of stock", message);
+      } else {
+      assert("`Your selected quantity is too high, only ${product.quantity} item(s) are in stock`", message);
     }
   });
 
@@ -43,21 +43,21 @@ it("should not allow user to purchase a product out of stock", async () => {
     token = response.body.token;
     const { status, message } = response.body;
     if (status == "error") {
-      assert(">0", message);
+      assert("Could not add item to cart", message);
     } else {
       assert("Item Added to cart", message);
     }
   });
 
-  it("should show the items added to the cart", async () => {
+  it("should allow user to update items in the cart", async () => {
     const response = await supertest(app)
-      .post("/cart")
+      .put("/cart")
       .set({ Authorization: `Bearer ${token}` });
 
     token = response.body.token;
     const { status, message } = response.body;
     if (status == "error") {
-      assert("1", message);
+      assert("Could not update cart item", message);
     } else {
       assert("Cart item updated", message);
     }

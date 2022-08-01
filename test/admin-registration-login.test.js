@@ -18,20 +18,21 @@ app.use(express.urlencoded({ extended: false }));
 //const PgPromise = require("pg-promise");
 //const pgp = PgPromise({});
 const DATABASE_URL = process.env.DATABASE_URL;
-
+let token
 let assert = require("assert");
 describe("The Admin registration API", function () {
 
 it("should register a new admin", async () => {
     const response = await supertest(app).post("/admin/user").send({
-      user_name: "max",
+      user_name: "jjohn",
       password: "word45",
-      first_name: "Maxwell",
-      lastname: "Steyn",
-      contact_number: "0766543456",
-      email_address: "max@gmail.com",
+      first_name: "John",
+      lastname: "Miz",
+      contact_number: "0747543456",
+      email_address: "john@gmail.com",
+      user_type_id:"87"
     });
-
+    token = response.body.token;
     const { status, message } = response.body;
     if (status == "error") {
       assert("User added", message);
@@ -39,4 +40,28 @@ it("should register a new admin", async () => {
       assert("Could not add user", message);
     }
   });
+
+  
+  //it("should add admin address", async () => {
+    //const response = await supertest(app).post("admin/user/:user_id/address").send({
+      
+      //user_id:"56",
+      
+    //address_id: "45",
+   // housenumber: "76",
+    //street: "north st",
+    //province: "gauteng",
+    //postal_code: "1500"
+      
+      
+    //});
+    //token = response.body.token;
+    //const { status, message } = response.body;
+    //if (status == "error") {
+      //assert("Address added", message);
+    //} else {
+      //assert("Could not add address", message);
+    //}
+  //});
+  
 });
