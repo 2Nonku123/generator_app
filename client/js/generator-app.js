@@ -1,7 +1,7 @@
 import Axios from "axios";
 import Joi from "joi";
 
-export default function MoviePlaylistApp() {
+export default function GeneratorApp() {
   return {
     /////////////////
     // View Constants

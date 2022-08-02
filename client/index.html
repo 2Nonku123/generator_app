@@ -12,6 +12,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="./css/style.css">
   <link rel="stylesheet" href="./css/productCard.css">
+  
   <title>Generator store</title>
 </head>
 
@@ -592,9 +593,8 @@
 
       <div class="w3-padding" x-show="currentView == VIEW_PRODUCT_DESCRIPTION">
 
-        <div class="w3-padding w3-white">
-          <H1 class="w3-text-indigo w3-large">Current Product -<span x-text="selectedProduct.product_name"></span>
-          </H1>
+        <div class="w3-padding w3-green">
+         
 
           <div class="w3-row w3-padding w3-border">
 
@@ -640,13 +640,7 @@
 
 <div class="info">
 	<h2> Description</h2>
-	<ul>
-		<li><strong>Height : </strong>5 Ft </li>
-		<li><strong>Shade : </strong>Olive green</li>
-		<li><strong>Decoration: </strong>balls and bells</li>
-		<li><strong>Material: </strong>Eco-Friendly</li>
-		
-	</ul>
+	<h3 x-text="selectedProduct.description"></h3>
 </div>
 </div>
 
@@ -655,18 +649,9 @@
             </div>
 
             <div class="w3-half w3-padding" x-show="accountVisible">
-              <p class="w3-xlarge w3-text-indigo">R <span x-text="selectedProduct.price"></span> </p>
-              <div class="w3-padding">
+             
 
-                <button class="w3-button w3-red w3-round-large w3-center" @click="addSelectedQuantity(-1)">-</button>
-                <input class="w3-input w3-border w3-border-indigo w3-center" style="display:inline-block;width:50px;"
-                  x-model="selectedProduct.selected_quantity" x-on:change.debounce="updateSelectedPrice()" />
-                <button class="w3-button w3-green w3-round-large w3-center" @click="addSelectedQuantity(1)">+</button>
-              </div>
-
-              <div>
-                <p>Selected Price: R <span x-text="selectedProduct.calculated_price"></span></p>
-              </div>
+              
               <button class="w3-button w3-indigo w3-round-medium" @click="cartAdd()"> <i
                   class="fa fa-shopping-cart"></i> Add to cart</button>
             </div>
