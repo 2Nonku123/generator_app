@@ -23,7 +23,7 @@ let assert = require("assert");
 let token
 
 describe("The adding new products API", function () {
-it("should not allow user to purchase a product out of stock", async () => {
+it("should allow admin user to add a new product", async () => {
   
     const response = await supertest(app)
       .post("/admin/product")
@@ -40,7 +40,7 @@ it("should not allow user to purchase a product out of stock", async () => {
   });
 
   
-    it("should not allow user to purchase a product out of stock", async () => {
+    it("should allow admin user to update a product", async () => {
       
         const response = await supertest(app)
           .put("/admin/product")
@@ -57,7 +57,7 @@ it("should not allow user to purchase a product out of stock", async () => {
       });
 
      
-        it("should not allow user to purchase a product out of stock", async () => {
+        it("should allow admin user to remove a product", async () => {
           
             const response = await supertest(app)
               .delete("/admin/product/:product_id")
