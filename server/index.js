@@ -2144,8 +2144,8 @@ function checkAdminAuthorizationToken(req, res, next) {
     return res.sendStatus(401);
   }
 
-  jwt.verify(token[0], jwt_admin_key, (err, user) => {
-    if (!err) {
+  jwt.verify(token[0], jwt_key, (err, user) => {
+    if (!err && user.user_type == "admin") {
       req.user = user;
       next();
     } else {

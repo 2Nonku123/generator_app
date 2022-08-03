@@ -54,7 +54,7 @@ module.exports = function OrderAdminManager(pool) {
     return result.rowCount > 0 ? result.rows[0] : null;
   }
 
-  async function getOrders(user_id, is_cart = false) {
+  async function getOrders(is_cart = false) {
     const result = await pool.query(
       `SELECT 
       user_order.id,
@@ -64,7 +64,9 @@ module.exports = function OrderAdminManager(pool) {
       order_status.description as "order_status"
       FROM user_order 
       INNER JOIN order_status ON order_status.id = user_order.order_status_id
-      WHERE user_id = $1 AND is_cart = $2`,
+      INNER JOIN store_user
+      WHERE is_cart = $2`,
+      //WHERE user_id = $1 AND is_cart = $2`,
       [user_id, is_cart]
     );
 
