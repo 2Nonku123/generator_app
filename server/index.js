@@ -44,14 +44,16 @@ app.use(express.urlencoded({ extended: false }));
 const { parse } = require("pg-connection-string");
 
 const config = parse(connection_string);
-/*
+
+if (connection_string.indexOf("localhost") == -1) {
 config.ssl = {
   rejectUnauthorized: false,
-};*/
+};
+}
 const pool = new Pool(config);
 //////////////////////////////
 
-const customerManager = CustomerManager(pool);
+const userManager = CustomerManager(pool);
 const storeManager = StoreManager(pool);
 
 const orderAdminManager = OrderAdminManager(pool);
@@ -92,7 +94,7 @@ app.post("/api/login", async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .getUserByUserName(user_name)
     .then((user_account) => {
       if (bcrypt.compareSync(password, user_account.password)) {
@@ -159,7 +161,7 @@ app.post("/api/signup", async function (req, res) {
     return;
   }
 
-  let user_account = await customerManager.getUserByUserName(user_name);
+  let user_account = await userManager.getUserByUserName(user_name);
 
   if (user_account != null && user_account.id != null) {
     res.json({
@@ -170,7 +172,7 @@ app.post("/api/signup", async function (req, res) {
   }
 
   const encrypted_password = bcrypt.hashSync(password, 10);
-  const result = await customerManager.registerUser(
+  const result = await userManager.registerUser(
     first_name,
     lastname,
     encrypted_password,
@@ -181,7 +183,7 @@ app.post("/api/signup", async function (req, res) {
   );
 
   if (result > 0) {
-    user_account = await customerManager.getUserByUserName(user_name);
+    user_account = await userManager.getUserByUserName(user_name);
     const user = {
       user_id: user_account.id,
       first_name: first_name,
@@ -209,7 +211,7 @@ app.post("/api/signup", async function (req, res) {
 // User Profile Routes
 
 app.get("/profile/", checkAuthorizationToken, async function (req, res) {
-  customerManager
+  userManager
     .getProfile(req.user.user_id)
     .then((profileInfo) => res.json(profileInfo))
     .catch((error) =>
@@ -239,7 +241,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateUserPersonal(first_name, lastname, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -278,7 +280,7 @@ app.put("/profile/contact", checkAuthorizationToken, async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .updateUserContact(email_address, contact_number, req.user.user_id)
     .then((updateStatus) =>
       res.json({
@@ -326,7 +328,7 @@ app.put(
       return;
     }
     const encrypted_password = bcrypt.hashSync(password, 10);
-    customerManager
+    userManager
       .updatePassword(encrypted_password, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -345,7 +347,7 @@ app.put(
 );
 
 app.get("/profile/address", checkAuthorizationToken, async function (req, res) {
-  customerManager
+  userManager
     .getAddressAll(req.user.user_id)
     .then((addressData) => res.json(addressData))
     .catch((error) => res.json([]));
@@ -372,7 +374,7 @@ app.get(
       return;
     }
 
-    customerManager
+    userManager
       .getAddress(address_id, req.user.user_id)
       .then((addressData) =>
         res.json({
@@ -411,7 +413,7 @@ app.post(
       return;
     }
 
-    customerManager
+    userManager
       .addAddress(housenumber, street, province, postal_code, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -450,7 +452,7 @@ app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .updateAddress(
       housenumber,
       street,
@@ -495,7 +497,7 @@ app.delete(
       return;
     }
 
-    customerManager
+    userManager
       .removeAddress(address_id, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1088,7 +1090,7 @@ app.post("/api/admin/login", async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .getUserByUserName(user_name)
     .then((user_account) => {
       if (
@@ -1101,7 +1103,7 @@ app.post("/api/admin/login", async function (req, res) {
           lastname: user_account.lastname,
           user_type: "admin",
         };
-        const accessKey = jwt.sign(user, jwt_admin_key, {
+        const accessKey = jwt.sign(user, jwt_key, {
           expiresIn: "24h",
         });
 
@@ -1131,7 +1133,7 @@ app.get(
   "/admin/profile/",
   checkAdminAuthorizationToken,
   async function (req, res) {
-    customerManager
+    userManager
       .getProfile(req.user.user_id)
       .then((profileInfo) => res.json(profileInfo))
       .catch((error) =>
@@ -1162,7 +1164,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateUserPersonal(first_name, lastname, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1204,7 +1206,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateUserContact(email_address, contact_number, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1253,7 +1255,7 @@ app.put(
       return;
     }
     const encrypted_password = bcrypt.hashSync(password, 10);
-    customerManager
+    userManager
       .updatePassword(encrypted_password, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1275,7 +1277,7 @@ app.get(
   "/admin/profile/address",
   checkAdminAuthorizationToken,
   async function (req, res) {
-    customerManager
+    userManager
       .getAddressAll(req.user.user_id)
       .then((addressData) => res.json(addressData))
       .catch((error) => res.json([]));
@@ -1303,7 +1305,7 @@ app.get(
       return;
     }
 
-    customerManager
+    userManager
       .getAddress(address_id, req.user.user_id)
       .then((addressData) =>
         res.json({
@@ -1342,7 +1344,7 @@ app.post(
       return;
     }
 
-    customerManager
+    userManager
       .addAddress(housenumber, street, province, postal_code, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1384,7 +1386,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateAddress(
         housenumber,
         street,
@@ -1430,7 +1432,7 @@ app.delete(
       return;
     }
 
-    customerManager
+    userManager
       .removeAddress(address_id, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1649,7 +1651,7 @@ app.put(
     }
 
     const encrypted_password = bcrypt.hashSync(iObject.password, 10);
-    customerManager
+    userManager
       .updatePassword(encrypted_password, iObject.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1683,7 +1685,7 @@ app.get(
       res.status(400).send(sResult.error.details[0].message);
       return;
     }
-    customerManager
+    userManager
       .getAddressAll(user_id)
       .then((addressData) => res.json(addressData))
       .catch((error) => res.json([]));
@@ -1708,7 +1710,7 @@ app.get(
       return;
     }
 
-    customerManager
+    userManager
       .getAddress(address_id, user_id)
       .then((addressData) => res.json(addressData))
       .catch((error) => res.json(null));
@@ -1742,7 +1744,7 @@ app.post(
       return;
     }
 
-    customerManager
+    userManager
       .addAddress(housenumber, street, province, postal_code, user_id)
       .then((updateStatus) =>
         res.json({
@@ -1787,7 +1789,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateAddress(
         housenumber,
         street,
@@ -1834,7 +1836,7 @@ app.delete(
       return;
     }
 
-    customerManager
+    userManager
       .removeAddress(address_id, user_id)
       .then((updateStatus) =>
         res.json({
