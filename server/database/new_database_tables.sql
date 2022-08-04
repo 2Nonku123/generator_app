@@ -13,7 +13,7 @@ CREATE TABLE store_user (
   lastname varchar(50) NOT NULL,
   user_name varchar(50) NOT NULL,
   password text NOT NULL,
-  email_address	varchar(128) NOT NULL DEFAULT ' ',
+  email_address varchar(128) NOT NULL DEFAULT ' ',
   contact_number varchar(13) NOT NULL DEFAULT ' ',
   date_registered TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   user_type_id INT NOT NULL,
@@ -55,7 +55,7 @@ INSERT INTO order_status VALUES
 
 CREATE TABLE user_order (
   id serial NOT NULL PRIMARY KEY ,
-  is_cart	boolean	NOT NULL DEFAULT TRUE,
+  is_cart boolean	NOT NULL DEFAULT TRUE,
   
   order_date  TIMESTAMP NOT NULL DEFAULT '1990/01/01',
   order_total  decimal(10,2) NOT NULL DEFAULT 0,

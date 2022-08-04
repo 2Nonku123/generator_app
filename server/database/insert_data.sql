@@ -33,7 +33,7 @@ INSERT INTO product(product_name,description,price,quantity,available,product_im
 INSERT INTO product(product_name,description,price,quantity,available,product_image) VALUES('Flogas','Model no:JHY8KG, Capacity:8kgCondition:New, Shroud & Base Steel QualityQ235','820',25,true,'images/gas13.jpg');
 INSERT INTO product(product_name,description,price,quantity,available,product_image) VALUES('GasBank','Model no:JKY8KG, Capacity:8kg  Working Pressure:2.1MPa, Working Temperature-40ºC~60ºC','810',25,true,'images/gas14.jpg');
 INSERT INTO product(product_name,description,price,quantity,available,product_image) VALUES('Coleman','Model no:IUT16KG, Capacity:16kg  Storage Medium:LPG,Pressure Level:Medium','1200',25,true,'images/gas15.jpg');
-INSERT INTO product(product_name,description,price,quantity,available,product_image) VALUES('','Model no:KHY9KG, Capacity:9kg Material:Steel,Pressure:1.6MPa=p<10.0MPa','869',25,true,'images/gas16.jpg');
+
 INSERT INTO product(product_name,description,price,quantity,available,product_image) VALUES('FlameKing','Model no:BN-20kg-A, Capacity:20kgWall Thickness(mm)4.3, Testing Pressure(Mpa)20','1500',25,true,'images/gas17.jpg');
 INSERT INTO product(product_name,description,price,quantity,available,product_image) VALUES('FourSeasons','Model no:KJH6KG, Capacity:6kg Inner Diameters(mm)215, Outer Diameter(mm)219.6','630',25,true,'images/gas18.jpg');
 INSERT INTO product(product_name,description,price,quantity,available,product_image) VALUES('Flogas','Model no:DGT7KG, Capacity:7kg Testing Pressure(Mpa):3.0, Height(mm)334','740',25,true,'images/gas19.jpg');

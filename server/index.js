@@ -1516,7 +1516,7 @@ app.post("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
     .then((result) =>
       res.json({
         status: result > 0 ? "success" : "error",
-        message: result > 0 ? "User added" : "Could not add user",
+        message: result > 0 ? "New User added" : "Could not add user",
       })
     )
     .catch((error) =>
@@ -1542,7 +1542,11 @@ app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   if (sResult.error !== undefined) {
     res.json({ status: "error", message: sResult.error.details[0].message });
     return;
+  }else if (iObject.id == req.user.user_id) {
+    res.json({status: "error", message: "Cannot edit your own Account"});
+    return;
   }
+
   let iObject = {
     id: req.body.id,
     first_name: req.body.first_name,
@@ -1588,6 +1592,9 @@ app.delete(
     if (sResult.error !== undefined) {
       res.json({ status: "error", message: sResult.error.details[0].message });
       return;
+    }else if(iObject.id == req.user.user_id){
+      res.json({ status:"error", message: "Cannot remove your own Account"});
+      return;
     }
     userAdminManager
       .deleteUser(iObject.id)
@@ -1606,6 +1613,57 @@ app.delete(
           message: "Could not delete user / User not found",
         })
       );
+  }
+);
+
+///Reset Password
+app.put(
+  "/admin/user/password/reset/:id",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    let iObject = { id: req.params.id };
+    let scheme = Joi.object({
+      id: Joi.number().integer().required(),
+
+    });
+
+    let sResult = scheme.validate(iObject);
+    if (sResult.error !==undefined) {
+      res.json({ status: "error", message: sResult.error.details[0].message });
+      return;
+
+    }else if (iObject.id == req.user.user_id) {
+      res.json({ status:"error", message: "Cannot remove your own Account"});
+      return;
+    }
+    const user = await userManager.getUserByID(iObject.id);
+    if (user != null) {
+      const encrypted_password = bcrypt.hashSync(user.user_name, 10);
+      userManager
+      .updatePassword(encrypted_password, iObject.id)
+      .then((updateStatus) =>
+      res.json({
+        status: updateStatus >0 ? "success" : "error",
+        message:
+        updateStatus > 0
+        ? "Password reset to : " + user.user_name
+        : "Could not update password",
+
+      })
+      )
+      .catch((error) =>
+      res.json({
+        status: "error",
+        message: "Could not update password",
+
+      })
+      );
+    } else {
+      res.json({
+        status: "error",
+        message: "Could not update password / User not found",
+      });
+    }
   }
 );
 
@@ -2115,6 +2173,76 @@ app.delete(
       );
   }
 );
+
+//Admin order routes
+app.get("/admin/order/", checkAuthorizationToken, async function (req, res){
+  orderAdminManager
+  .getOrders(false)
+  .then((orderInfo) => res.json(orderInfo))
+  .catch((error) => res.json([]));
+});
+
+app.get(
+  "/admin/order/:order_id",
+  checkAuthorizationToken,
+  async function (req, res) {
+    const { order_id } = req.params;
+    let scheme = Joi.object({
+      order_id: Joi.number().min(1).required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+      return;
+    }
+  orderAdminManager
+  .getOrder(order_id)
+  .then((orderInfo) =>
+  res.json({ status: "success", message: "", order: orderInfo})
+
+  )
+  .catch((error) =>
+  res.json({ status: "error", message: "Order could not be found"})
+  );
+}
+);
+app.get(
+  "/admin/order/:order_id/items",
+  checkAuthorizationToken,
+  async function (req, res) {
+    const { order_id} = req.params;
+    let scheme = Joi.object({
+      order_id: Joi.number().min(1).required(),
+    });
+    let sResult = scheme.validate(req.params);
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+      return;
+    }
+    orderAdminManager
+    .getOrder(order_id)
+    .then((cart_info) => {
+      if (cart_info != null) {
+        return cart_info;
+      }
+      return Promise.reject();
+    })
+    .then(
+      (order_info) =>
+      (cartItems = orderAdminManager.getOrderProducts(order_info.id))
+    )
+    .then((orderInfo) => res.json(orderInfo))
+    .catch((error) => res.json([]));
+  }
+);
+
 
 ////////////////////////////////////////////////////////////
 
