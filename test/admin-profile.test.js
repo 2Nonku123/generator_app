@@ -20,6 +20,7 @@ app.use(express.urlencoded({ extended: false }));
 const DATABASE_URL = process.env.DATABASE_URL;
 
 let assert = require("assert");
+let token
 describe("The Admin profile API", function () {
 
 
@@ -75,21 +76,22 @@ it("should update admin personal details", async () => {
   //});
   //it("should update admin address", async () => {
    // const response = await supertest(app).put("admin/user/:user_id/address").send({
-    
-   // housenumber: "766",
+      //user_id:"56",
+      //address_id: "87",
+    //housenumber: "766",
     //street: "south st",
-   // province: "gauteng",
-   // postal_code: "1400",
-   // user_id:"56", 
-    //address_id: "87"
+    //province: "gauteng",
+    //postal_code: "1400",
+    
+    
       
-   // });
+    //});
     //token = response.body.token;
     //const { status, message } = response.body;
     //if (status == "error") {
+    //assert("Could not update address", message);
+    //} else {
       //assert("Address updated", message);
-   // } else {
-     // assert("Could not update address", message);
    // }
   //});
   //it("should remove admin address", async () => {
