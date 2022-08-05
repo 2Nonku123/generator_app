@@ -23,6 +23,7 @@ let assert = require("assert");
 let token
 describe("The Admin profile API", function () {
 
+  
 
 it("should update admin personal details", async () => {
     const response = await supertest(app).put("/admin/user")
@@ -39,9 +40,9 @@ it("should update admin personal details", async () => {
     token = response.body.token;
     const { status, message } = response.body;
     if (status == "error") {
-      assert("User updated", message);
-    } else {
       assert("Could not update user", message);
+    } else {
+      assert("User updated", message);
     }
   });
 
@@ -52,32 +53,67 @@ it("should update admin personal details", async () => {
     token = response.body.token;
     const { status, message } = response.body;
     if (status == "error") {
-      assert("User deleted", message);
-    } else {
       assert("Could not delete user", message);
+    } else {
+      assert("User deleted", message);
     }
   });
 
+  it("should reset password of admin user", async () => {
+    const response = await supertest(app).put("/admin/user/password/reset/:id").send({
+      id:"89"
+    });
+    token = response.body.token;
+    const { status, message } = response.body;
+    if (status == "error") {
+      assert("Cannot remove your own Account", message);
+    } else {
+      assert("Password reset to", message);
+    }
+  });
   //it("should update admin password", async () => {
     //const response = await supertest(app).put("admin/user/:user_id/password").send({
-     // user_id:"56",
-     // password: "wor45",
+      //user_id:"56",
+      //password: "wor45",
       //confirm_password: "wor45"
+      
+      
+      
+    //});
+    //token = response.body.token;
+    //const { status, message } = response.body;
+   // if (status == "error") {
+    //("Both passwords must match", message);
+    //} else {
+     // assert("Password updated", message);
+    //}
+  //});
+
+  //it("should add admin address", async () => {
+    //const response = await supertest(app).post("admin/user/:user_id/address").send({
+      
+     //user_id:"58",
+      
+    //address_id: "45",
+   // housenumber: "76",
+    //street: "north st",
+    //province: "gauteng",
+    //postal_code: "1500"
       
       
     //});
     //token = response.body.token;
     //const { status, message } = response.body;
     //if (status == "error") {
-     // assert("Could not update password", message);
+    //  assert("Could not add address", message);
     //} else {
-     // assert("Password updated", message);
+    //  assert("Address added", message);
     //}
   //});
   //it("should update admin address", async () => {
    // const response = await supertest(app).put("admin/user/:user_id/address").send({
-      //user_id:"56",
-      //address_id: "87",
+    //  user_id:"58",
+    //  address_id: "87",
     //housenumber: "766",
     //street: "south st",
     //province: "gauteng",
@@ -88,13 +124,13 @@ it("should update admin personal details", async () => {
     //});
     //token = response.body.token;
     //const { status, message } = response.body;
-    //if (status == "error") {
-    //assert("Could not update address", message);
-    //} else {
-      //assert("Address updated", message);
+   // if (status == "error") {
+   // assert("Could not update address", message);
+   // } else {
+    //  assert("Address updated", message);
    // }
   //});
-  //it("should remove admin address", async () => {
+//it("should remove admin address", async () => {
     //const response = await supertest(app).delete("admin/user/:user_id/address/:address_id").send({
      // user_id:"56",
      // address_id: "45",
@@ -104,10 +140,10 @@ it("should update admin personal details", async () => {
    // });
     //token = response.body.token;
     //const { status, message } = response.body;
-   // if (status == "error") {
-    //  assert("Address removed", message);
-    //} else {
+    //if (status == "error") {
      // assert("Could not find address", message);
-    //}
+    //} else {
+     // assert("Address removed", message);
+   // }
   //});
 });

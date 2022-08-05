@@ -40,9 +40,9 @@ describe("The products API", function () {
     //token = response.body.token;
     const { status, message}= response.body;
     if (status == "error") {
-      assert("product added", message);
+      assert("Could not add product", message);
     } else {
-      assert("Could not add product")
+      assert("product added")
     }
     
   });
@@ -54,9 +54,9 @@ describe("The products API", function () {
     //token = response.body.token;
     const { status, message}= response.body;
     if (status == "error") {
-      assert("product updated", message);
+      assert("Could not update product", message);
     } else {
-      assert("Could not update product")
+      assert("product updated")
     }
     
   });
