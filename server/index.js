@@ -42,6 +42,7 @@ app.use(express.urlencoded({ extended: false }));
 
 // Database config
 const { parse } = require("pg-connection-string");
+const { json }= require("express");
 
 const config = parse(connection_string);
 
@@ -2031,22 +2032,27 @@ app.post(
   checkAdminAuthorizationToken,
   async function (req, res) {
     let scheme = Joi.object({
+      id: Joi.number().min(0).required(),
       product_name: Joi.string().min(1).required(),
-      description: Joi.string().min(1).required().empty().optional(),
-      price: Joi.number().required(),
-      quantity: Joi.number().integer().required(),
+      description: Joi.string().min(1).empty().optional(),
+      price: Joi.number().min(0).required(),
+      quantity: Joi.number().min(0).integer().required(),
       available: Joi.bool().required(),
       is_rentalble: Joi.bool().required(),
       rental_duration: Joi.number().integer().required(),
-      rental_duration_type: Joi.number().integer().required(),
-      product_type_id: Joi.number().integer().required(),
-      product_image: Joi.string().min(1).required().empty().optional(),
+      rental_duration_type: Joi.number().integer().min(0).max(5).required(),
+      product_type_id: Joi.number().integer().min(1).max(4).required(),
+      product_image: Joi.string().empty().min(0).optional(),
+      product_type: Joi.string().empty().min(0).optional(),
     });
 
     let sResult = scheme.validate(req.body);
 
     if (sResult.error !== undefined) {
-      res.status(400).send(sResult.error.details[0].message);
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      })
       return;
     }
     let iObject = {
@@ -2059,8 +2065,9 @@ app.post(
       rental_duration: req.body.rental_duration,
       rental_duration_type: req.body.rental_duration_type,
       product_type_id: req.body.product_type_id,
-      product_image: req.body.product_image,
+      
     };
+    console.log(iObject);
 
     productAdminManager
       .addProduct(iObject)
@@ -2084,23 +2091,27 @@ app.put(
   checkAdminAuthorizationToken,
   async function (req, res) {
     let scheme = Joi.object({
-      id: Joi.number().required(),
+      id: Joi.number().min(0).required(),
       product_name: Joi.string().min(1).required(),
-      description: Joi.string().min(1).required().empty().optional(),
-      price: Joi.number().required(),
-      quantity: Joi.number().integer().required(),
+      description: Joi.string().min(1).empty().optional(),
+      price: Joi.number().min(0).required(),
+      quantity: Joi.number().min(0).integer().required(),
       available: Joi.bool().required(),
       is_rentalble: Joi.bool().required(),
       rental_duration: Joi.number().integer().required(),
-      rental_duration_type: Joi.number().integer().required(),
-      product_type_id: Joi.number().integer().required(),
-      product_image: Joi.string().min(1).required().empty().optional(),
+      rental_duration_type: Joi.number().integer().min(0).max(5).required(),
+      product_type_id: Joi.number().integer().min(1).max(4).required(),
+      product_image: Joi.string().empty().min(0).optional(),
+      product_type: Joi.string().empty().min(0).optional(),
     });
 
     let sResult = scheme.validate(req.body);
 
     if (sResult.error !== undefined) {
-      res.status(400).send(sResult.error.details[0].message);
+   res.json({
+    status: "error",
+    message: sResult.error.details[0].message,
+   })
       return;
     }
     let iObject = {
@@ -2113,7 +2124,7 @@ app.put(
       rental_duration: req.body.rental_duration,
       rental_duration_type: req.body.rental_duration_type,
       product_type_id: req.body.product_type_id,
-      product_image: req.body.product_image,
+      
       id: req.body.id,
     };
 
@@ -2177,14 +2188,58 @@ app.delete(
 //Admin order routes
 app.get("/admin/order/", checkAuthorizationToken, async function (req, res){
   orderAdminManager
-  .getOrders(false)
+  .getOrders()
   .then((orderInfo) => res.json(orderInfo))
   .catch((error) => res.json([]));
+
 });
+
+
+app.get(
+  "/admin/order/search/id/:search_id",
+  checkAdminAuthorizationToken,
+  async function(req, res) {
+    const search =
+    req.params.search_id == null ? 0 : req.params.search_id.trim();
+    let scheme = Joi.object({
+      search_id: Joi.number().integer().min(1).required(),
+    });
+    let sResult = scheme.validate({ search_id: search});
+    if(sResult.error !== undefined) {
+      res.json([]);
+      return;
+    }
+    orderAdminManager
+    .getOrdersByID(search)
+    .then((orderInfo) => res.json(orderInfo))
+    .catch((error) => res.json([]));
+  }
+);
+
+app.get(
+  "/admin/order/search/name/:search_text",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const search = req.params.search_text == null ? "" : req.params.search_text.trim();
+    let scheme = Joi.object({
+      search_text: Joi.string().min(3).required(),
+    });
+    let sResult = scheme.validate({ search_text: search});
+    if (sResult.error !== undefined) {
+      res.json([]);
+      return;
+    }
+    orderAdminManager
+    .getOrdersByName(search)
+    .then((orderInfo) => res.json(orderInfo))
+    .catch((error) => res.json([]));
+  }
+);
+
 
 app.get(
   "/admin/order/:order_id",
-  checkAuthorizationToken,
+ checkAdminAuthorizationToken,
   async function (req, res) {
     const { order_id } = req.params;
     let scheme = Joi.object({
@@ -2212,7 +2267,7 @@ app.get(
 );
 app.get(
   "/admin/order/:order_id/items",
-  checkAuthorizationToken,
+  checkAdminAuthorizationToken,
   async function (req, res) {
     const { order_id} = req.params;
     let scheme = Joi.object({
@@ -2228,21 +2283,103 @@ app.get(
     }
     orderAdminManager
     .getOrder(order_id)
-    .then((cart_info) => {
-      if (cart_info != null) {
-        return cart_info;
+    .then((order_info) => {
+      if (order_info != null) {
+        return order_info;
       }
       return Promise.reject();
     })
     .then(
       (order_info) =>
-      (cartItems = orderAdminManager.getOrderProducts(order_info.id))
+      orderAdminManager.getOrderProducts(order_info.order_id)
     )
     .then((orderInfo) => res.json(orderInfo))
-    .catch((error) => res.json([]));
+    .catch((error) =>{
+      res.json([]);
+    }); 
   }
 );
 
+app.put(
+  "/admin/order/:order_id/status",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const { order_id } = req.params;
+    const { status_id } = req.body;
+    let response;
+
+    let scheme = Joi.object({
+      order_id: Joi.number().min(1).required(),
+      status_id: Joi.number().min(4).max(7).required(),
+    });
+
+    let sResult= scheme.validate({
+      order_id: req.params.order_id,
+      status_id: req.body.status_id,
+    });
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+      return;
+    }
+    orderAdminManager
+    .getOrder(order_id)
+    .then((order_info) => {
+      if (order_info != null) {
+        if (order_info.order_status_id == 2) {
+          if (status_id !=6  && status_id !=7) {
+            return Promise.reject({
+              status: "error",
+              message: "You can only set an order as, cancelled or collected",
+            });
+          }
+        } else if(order_info.order_status_id == 3) {
+          if ((status_id != 4) & (status_id != 5) && status_id != 7) {
+            return Promise.reject({
+              status: "error",
+              message:"You can only set an order as, cancelled, delivered or on route",
+
+            });
+          }
+        } else if (order_info.order_status_id == 4) {
+          if (status_id != 5 && status_id != 7){
+            return Promise.reject({
+              status: "error",
+              message: "You can only set an order as, cancelled or delivered",
+            });
+
+          }
+        }
+        return orderAdminManager.updateOrderStatus(status_id, order_id);
+      }
+      return Promise.reject();
+    })
+    then((status_result) => {
+      //if order cancelled we reverse stock
+      response = {
+        status: status_result > 0 ? "success" : "error",
+        message: status_result
+        ? "Order status updated"
+        : "Could not update order status",
+      };
+      if (status_id == 7) {
+        return orderAdminManager.updateProductQauntityReverse(order_id);
+      }
+      return 0;
+    })
+    .then((result) => res.json(response))
+    .catch((error) => {
+      error.status != null && error.message != null
+      ? res.json(error)
+      :res.json({
+        status: "error",
+        message: "Could not set order status",
+      });
+    });
+  }
+);
 
 ////////////////////////////////////////////////////////////
 
