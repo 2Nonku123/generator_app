@@ -45,12 +45,12 @@ CREATE TABLE order_status (
 );	
 
 INSERT INTO order_status VALUES 
-(1, 'Order Pending'),
-(2, 'Order Complete, Awaiting collection'),
-(3, 'Order Complete, Preparing for delivery'),
+(1, 'Pending Payment'),
+(2, 'Awaiting collection'),
+(3, 'Preparing for delivery'),
 (4, 'Order Delivery: On route'),
-(5, 'Order Collected'),
-(6, 'Order Delivered'),
+(5, 'Order Delivered'),
+(6, 'Order Collected'),
 (7, 'Order Cancelled');
 
 CREATE TABLE user_order (
