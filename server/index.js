@@ -42,14 +42,14 @@ app.use(express.urlencoded({ extended: false }));
 
 // Database config
 const { parse } = require("pg-connection-string");
-const { json }= require("express");
+const { json } = require("express");
 
 const config = parse(connection_string);
 
 if (connection_string.indexOf("localhost") == -1) {
-config.ssl = {
-  rejectUnauthorized: false,
-};
+  config.ssl = {
+    rejectUnauthorized: false,
+  };
 }
 const pool = new Pool(config);
 //////////////////////////////
@@ -1458,10 +1458,35 @@ app.get("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
     .getUsers()
     .then((userResult) => res.json(userResult))
     .catch((error) => {
-      console.log(error);
       res.json([]);
     });
 });
+
+app.get(
+  "/admin/user/search/:search_text",
+  checkAdminAuthorizationToken,
+  async (req, res) => {
+    const search =
+      req.params.search_text == null ? "" : req.params.search_text.trim();
+    let scheme = Joi.object({
+      search_text: Joi.string().min(3).required(),
+    });
+
+    let sResult = scheme.validate({ search_text: search });
+
+    if (sResult.error !== undefined) {
+      res.json([]);
+      return;
+    }
+
+    userAdminManager
+      .getUserSearch(search)
+      .then((userResult) => res.json(userResult))
+      .catch((error) => {
+        res.json([]);
+      });
+  }
+);
 
 // Select User
 app.get("/admin/user/:id", checkAdminAuthorizationToken, async (req, res) => {
@@ -1493,6 +1518,7 @@ app.post("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
     email_address: Joi.string().email().max(250).required(),
     contact_number: Joi.string().min(1).required(),
     user_type_id: Joi.number().integer().min(1).max(2).required(),
+    locked: Joi.boolean().optional().empty(),
   });
 
   let sResult = scheme.validate(req.body);
@@ -1543,11 +1569,10 @@ app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   if (sResult.error !== undefined) {
     res.json({ status: "error", message: sResult.error.details[0].message });
     return;
-  }else if (iObject.id == req.user.user_id) {
-    res.json({status: "error", message: "Cannot edit your own Account"});
+  } else if (iObject.id == req.user.user_id) {
+    res.json({ status: "error", message: "Cannot edit your own Account" });
     return;
   }
-
   let iObject = {
     id: req.body.id,
     first_name: req.body.first_name,
@@ -1580,25 +1605,37 @@ app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
 
 // Delete User
 app.delete(
-  "/admin/user/:id",
+  "/admin/user/:user_id",
   checkAdminAuthorizationToken,
   async (req, res) => {
-    let iObject = { id: req.params.id };
+    let { user_id } = req.params;
     let scheme = Joi.object({
       id: Joi.number().integer().required(),
     });
 
-    let sResult = scheme.validate(iObject);
+    let sResult = scheme.validate({ id: user_id });
 
     if (sResult.error !== undefined) {
       res.json({ status: "error", message: sResult.error.details[0].message });
       return;
-    }else if(iObject.id == req.user.user_id){
-      res.json({ status:"error", message: "Cannot remove your own Account"});
+    } else if (user_id == req.user.user_id) {
+      res.json({ status: "error", message: "Cannot remove your own Account" });
       return;
     }
+
+    const userHasOrder = await orderAdminManager.userOrdered(user_id);
+
+    if (userHasOrder != null && userHasOrder.count > 0) {
+      res.json({
+        status: "error",
+        message: "Cannot remove a user who has a order history",
+      });
+
+      return;
+    }
+
     userAdminManager
-      .deleteUser(iObject.id)
+      .deleteUser(user_id)
       .then((result) =>
         res.json({
           status: result > 0 ? "success" : "error",
@@ -1617,7 +1654,7 @@ app.delete(
   }
 );
 
-///Reset Password
+// Reset Password
 app.put(
   "/admin/user/password/reset/:id",
   checkAdminAuthorizationToken,
@@ -1625,40 +1662,39 @@ app.put(
     let iObject = { id: req.params.id };
     let scheme = Joi.object({
       id: Joi.number().integer().required(),
-
     });
 
     let sResult = scheme.validate(iObject);
-    if (sResult.error !==undefined) {
+
+    if (sResult.error !== undefined) {
       res.json({ status: "error", message: sResult.error.details[0].message });
       return;
-
-    }else if (iObject.id == req.user.user_id) {
-      res.json({ status:"error", message: "Cannot remove your own Account"});
+    } else if (iObject.id == req.user.user_id) {
+      res.json({ status: "error", message: "Cannot remove your own Account" });
       return;
     }
+
     const user = await userManager.getUserByID(iObject.id);
+
     if (user != null) {
       const encrypted_password = bcrypt.hashSync(user.user_name, 10);
       userManager
-      .updatePassword(encrypted_password, iObject.id)
-      .then((updateStatus) =>
-      res.json({
-        status: updateStatus >0 ? "success" : "error",
-        message:
-        updateStatus > 0
-        ? "Password reset to : " + user.user_name
-        : "Could not update password",
-
-      })
-      )
-      .catch((error) =>
-      res.json({
-        status: "error",
-        message: "Could not update password",
-
-      })
-      );
+        .updatePassword(encrypted_password, iObject.id)
+        .then((updateStatus) =>
+          res.json({
+            status: updateStatus > 0 ? "success" : "error",
+            message:
+              updateStatus > 0
+                ? "Password reset to : " + user.user_name
+                : "Could not update password",
+          })
+        )
+        .catch((error) =>
+          res.json({
+            status: "error",
+            message: "Could not update password",
+          })
+        );
     } else {
       res.json({
         status: "error",
@@ -1926,6 +1962,47 @@ app.get(
   }
 );
 
+app.put(
+  "/admin/category/",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    let scheme = Joi.object({
+      id: Joi.number().integer().required(),
+      name: Joi.string().min(1).required(),
+    });
+
+    let sResult = scheme.validate(req.body);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+      return;
+    }
+    let iObject = {
+      id: req.body.id,
+      name: req.body.name,
+    };
+
+    productAdminManager
+      .updateCategory(iObject)
+      .then((updateStatus) =>
+        res.json({
+          status: updateStatus > 0 ? "success" : "error",
+          message:
+            updateStatus > 0 ? "Category updated" : "Could not update category",
+        })
+      )
+      .catch((error) =>
+        res.json({
+          status: "error",
+          message: "Could not update category",
+        })
+      );
+  }
+);
+
 ///// admin products
 
 app.get(
@@ -2052,7 +2129,7 @@ app.post(
       res.json({
         status: "error",
         message: sResult.error.details[0].message,
-      })
+      });
       return;
     }
     let iObject = {
@@ -2065,9 +2142,7 @@ app.post(
       rental_duration: req.body.rental_duration,
       rental_duration_type: req.body.rental_duration_type,
       product_type_id: req.body.product_type_id,
-      
     };
-    console.log(iObject);
 
     productAdminManager
       .addProduct(iObject)
@@ -2108,10 +2183,10 @@ app.put(
     let sResult = scheme.validate(req.body);
 
     if (sResult.error !== undefined) {
-   res.json({
-    status: "error",
-    message: sResult.error.details[0].message,
-   })
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
       return;
     }
     let iObject = {
@@ -2124,7 +2199,6 @@ app.put(
       rental_duration: req.body.rental_duration,
       rental_duration_type: req.body.rental_duration_type,
       product_type_id: req.body.product_type_id,
-      
       id: req.body.id,
     };
 
@@ -2167,6 +2241,19 @@ app.delete(
       return;
     }
 
+    const productHasOrder = await productAdminManager.productOrdered(
+      product_id
+    );
+
+    if (productHasOrder != null && productHasOrder.count > 0) {
+      res.json({
+        status: "error",
+        message: "Cannot remove a ordered product",
+      });
+
+      return;
+    }
+
     productAdminManager
       .removeProduct(product_id)
       .then((updateStatus) =>
@@ -2185,34 +2272,41 @@ app.delete(
   }
 );
 
-//Admin order routes
-app.get("/admin/order/", checkAuthorizationToken, async function (req, res){
-  orderAdminManager
-  .getOrders()
-  .then((orderInfo) => res.json(orderInfo))
-  .catch((error) => res.json([]));
+////////////////////////////////////////////////////////////
 
-});
+//// Admin Order Routes
 
+app.get(
+  "/admin/order/",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    orderAdminManager
+      .getOrders()
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => res.json([]));
+  }
+);
 
 app.get(
   "/admin/order/search/id/:search_id",
   checkAdminAuthorizationToken,
-  async function(req, res) {
+  async function (req, res) {
     const search =
-    req.params.search_id == null ? 0 : req.params.search_id.trim();
+      req.params.search_id == null ? 0 : req.params.search_id.trim();
     let scheme = Joi.object({
       search_id: Joi.number().integer().min(1).required(),
     });
-    let sResult = scheme.validate({ search_id: search});
-    if(sResult.error !== undefined) {
+
+    let sResult = scheme.validate({ search_id: search });
+
+    if (sResult.error !== undefined) {
       res.json([]);
       return;
     }
     orderAdminManager
-    .getOrdersByID(search)
-    .then((orderInfo) => res.json(orderInfo))
-    .catch((error) => res.json([]));
+      .getOrdersByID(search)
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => res.json([]));
   }
 );
 
@@ -2220,83 +2314,92 @@ app.get(
   "/admin/order/search/name/:search_text",
   checkAdminAuthorizationToken,
   async function (req, res) {
-    const search = req.params.search_text == null ? "" : req.params.search_text.trim();
+    const search =
+      req.params.search_text == null ? "" : req.params.search_text.trim();
     let scheme = Joi.object({
       search_text: Joi.string().min(3).required(),
     });
-    let sResult = scheme.validate({ search_text: search});
+
+    let sResult = scheme.validate({ search_text: search });
+
     if (sResult.error !== undefined) {
       res.json([]);
       return;
     }
     orderAdminManager
-    .getOrdersByName(search)
-    .then((orderInfo) => res.json(orderInfo))
-    .catch((error) => res.json([]));
+      .getOrdersByName(search)
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => res.json([]));
   }
 );
 
-
 app.get(
   "/admin/order/:order_id",
- checkAdminAuthorizationToken,
+  checkAdminAuthorizationToken,
   async function (req, res) {
     const { order_id } = req.params;
+
     let scheme = Joi.object({
       order_id: Joi.number().min(1).required(),
     });
 
     let sResult = scheme.validate(req.params);
+
     if (sResult.error !== undefined) {
       res.json({
         status: "error",
         message: sResult.error.details[0].message,
       });
+
       return;
     }
-  orderAdminManager
-  .getOrder(order_id)
-  .then((orderInfo) =>
-  res.json({ status: "success", message: "", order: orderInfo})
-
-  )
-  .catch((error) =>
-  res.json({ status: "error", message: "Order could not be found"})
-  );
-}
+    orderAdminManager
+      .getOrder(order_id)
+      .then((orderInfo) =>
+        res.json({ status: "success", message: "", order: orderInfo })
+      )
+      .catch((error) =>
+        res.json({ status: "error", message: "Order could not be found" })
+      );
+  }
 );
+
 app.get(
   "/admin/order/:order_id/items",
   checkAdminAuthorizationToken,
   async function (req, res) {
-    const { order_id} = req.params;
+    const { order_id } = req.params;
+
     let scheme = Joi.object({
       order_id: Joi.number().min(1).required(),
     });
+
     let sResult = scheme.validate(req.params);
+
     if (sResult.error !== undefined) {
       res.json({
         status: "error",
         message: sResult.error.details[0].message,
       });
+
       return;
     }
     orderAdminManager
-    .getOrder(order_id)
-    .then((order_info) => {
-      if (order_info != null) {
-        return order_info;
-      }
-      return Promise.reject();
-    })
-    .then(
-      (order_info) =>
-      orderAdminManager.getOrderProducts(order_info.order_id)
-    )
-    .then((orderInfo) => res.json(orderInfo))
-    .catch((error) =>{
-      res.json([]);
-    }); 
+      .getOrder(order_id)
+      .then((order_info) => {
+        if (order_info != null) {
+          return order_info;
+        }
+
+        return Promise.reject();
+      })
+      .then((order_info) =>
+        orderAdminManager.getOrderProducts(order_info.order_id)
+      )
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => {
+        res.json([]);
+      });
   }
 );
 
@@ -2313,75 +2416,85 @@ app.put(
       status_id: Joi.number().min(4).max(7).required(),
     });
 
-    let sResult= scheme.validate({
+    let sResult = scheme.validate({
       order_id: req.params.order_id,
       status_id: req.body.status_id,
     });
+
     if (sResult.error !== undefined) {
       res.json({
         status: "error",
         message: sResult.error.details[0].message,
       });
+
       return;
     }
+
     orderAdminManager
-    .getOrder(order_id)
-    .then((order_info) => {
-      if (order_info != null) {
-        if (order_info.order_status_id == 2) {
-          if (status_id !=6  && status_id !=7) {
+      .getOrder(order_id)
+      .then((order_info) => {
+        if (order_info != null) {
+          if (order_info.order_status_id == 2) {
+            if (status_id != 6 && status_id != 7) {
+              return Promise.reject({
+                status: "error",
+                message: "You can only set an order as, cancelled or collected",
+              });
+            }
+          } else if (order_info.order_status_id == 3) {
+            if ((status_id != 4) & (status_id != 5) && status_id != 7) {
+              return Promise.reject({
+                status: "error",
+                message:
+                  "You can only set an order as, cancelled, delivered or on route",
+              });
+            }
+          } else if (order_info.order_status_id == 4) {
+            if (status_id != 5 && status_id != 7) {
+              return Promise.reject({
+                status: "error",
+                message:
+                  "You can only set an order as, cancelled or delivered ",
+              });
+            }
+          } /*else {
             return Promise.reject({
               status: "error",
-              message: "You can only set an order as, cancelled or collected",
+              message: "Invalid order status not allowed",
             });
-          }
-        } else if(order_info.order_status_id == 3) {
-          if ((status_id != 4) & (status_id != 5) && status_id != 7) {
-            return Promise.reject({
-              status: "error",
-              message:"You can only set an order as, cancelled, delivered or on route",
+          }*/
 
-            });
-          }
-        } else if (order_info.order_status_id == 4) {
-          if (status_id != 5 && status_id != 7){
-            return Promise.reject({
-              status: "error",
-              message: "You can only set an order as, cancelled or delivered",
-            });
-
-          }
+          return orderAdminManager.updateOrderStatus(status_id, order_id);
         }
-        return orderAdminManager.updateOrderStatus(status_id, order_id);
-      }
-      return Promise.reject();
-    })
-    then((status_result) => {
-      //if order cancelled we reverse stock
-      response = {
-        status: status_result > 0 ? "success" : "error",
-        message: status_result
-        ? "Order status updated"
-        : "Could not update order status",
-      };
-      if (status_id == 7) {
-        return orderAdminManager.updateProductQauntityReverse(order_id);
-      }
-      return 0;
-    })
-    .then((result) => res.json(response))
-    .catch((error) => {
-      error.status != null && error.message != null
-      ? res.json(error)
-      :res.json({
-        status: "error",
-        message: "Could not set order status",
+
+        return Promise.reject();
+      })
+      .then((status_result) => {
+        // if order is cancelled than we reverse the stock
+
+        response = {
+          status: status_result > 0 ? "success" : "error",
+          message: status_result
+            ? "Order status updated"
+            : "Could not update order status",
+        };
+        if (status_id == 7) {
+          return orderAdminManager.updateProductQauntityReverse(order_id);
+        }
+        return 0;
+      })
+      .then((result) => res.json(response))
+      .catch((error) => {
+        error.status != null && error.message != null
+          ? res.json(error)
+          : res.json({
+              status: "error",
+              message: "Could not set order status",
+            });
       });
-    });
   }
 );
-
-////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////
 
 function checkAuthorizationToken(req, res, next) {
   const authHeader = req.headers["authorization"];

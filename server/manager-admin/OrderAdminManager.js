@@ -314,6 +314,18 @@ module.exports = function OrderAdminManager(pool) {
     return result.rowCount;
   }
   
+  async function userOrdered(product_id) {
+    const result = await pool.query(
+      `SELECT
+      COUNT(user_order."id") as "count"
+      FROM user_order
+      WHERE user_order.user_id = $1 LIMIT 1`,
+      [product_id]
+    );
+
+    return result.rowCount > 0 ? result.rows[0] : null;
+  }
+
   return {
     getOrder,
     getOrders,
@@ -333,5 +345,6 @@ module.exports = function OrderAdminManager(pool) {
     getOrdersByName,
     getOrdersByID,
     updateOrderStatus,
+    userOrdered,
   };
 };

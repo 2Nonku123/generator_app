@@ -1,6 +1,8 @@
 module.exports = function ProductAdminManager(pool) {
   async function getProductType() {
-    const result = await pool.query(`select * from product_type`);
+    const result = await pool.query(
+      `select * from product_type ORDER BY product_type.name`
+      );
     return result.rows;
   }
 
@@ -182,6 +184,27 @@ module.exports = function ProductAdminManager(pool) {
     return result.rowCount;
   }
 
+  async function updateCategory(iObject) {
+    const result = await pool.query(
+      `UPDATE product_type SET name = $1 WHERE product_type.id = $2;`,
+      [iObject.name, iObject.id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function productOrdered(product_id) {
+    const result = await pool.query(
+      `SELECT
+      COUNT(user_order_product."id") as "count"
+      FROM user_order_product
+      WHERE user_order_product.product_id = $1 LIMIT 1`,
+      [product_id]
+    );
+
+    return result.rowCount > 0 ? result.rows[0] : null;
+  }
+
   return {
     getProductType,
     getProduct,
@@ -190,5 +213,7 @@ module.exports = function ProductAdminManager(pool) {
     addProduct,
     updateProduct,
     removeProduct,
+    productOrdered,
+    updateCategory,
   };
 };
