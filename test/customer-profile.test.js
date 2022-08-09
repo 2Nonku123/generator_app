@@ -18,9 +18,9 @@ app.use(express.urlencoded({ extended: false }));
 
 const DATABASE_URL = process.env.DATABASE_URL;
 let assert = require("assert");
-describe("The User profile API", function () {
+describe("The Customer User profile API", function () {
 
-it("should be able to update the users personal information", async () => {
+it("should allow users to be able to update their first and last names", async () => {
     const response = await supertest(app).put("/profile/personal").send({
       
       first_name: "Mark",
@@ -36,7 +36,7 @@ it("should be able to update the users personal information", async () => {
     }
   });
 
-  it("should be able to update the users contact information", async () => {
+  it("should allow users to be able to update their contact information", async () => {
     const response = await supertest(app).put("/profile/contact").send({
       
       contact_number: "0986653563",
@@ -51,7 +51,7 @@ it("should be able to update the users personal information", async () => {
       assert("Contact information updated", message);
     }
   });
-  it("should be able to update the users password", async () => {
+  it("should allow users to be able to update their own passwords", async () => {
     const response = await supertest(app).put("/profile/password").send({
       
       password: "jacob765",
@@ -67,7 +67,7 @@ it("should be able to update the users personal information", async () => {
     }
   });
 
-  it("should be able to add users address", async () => {
+  it("should allow users to be able to add their own address", async () => {
     const response = await supertest(app).post("/profile/address").send({
      
       housenumber: "766",
@@ -86,7 +86,7 @@ it("should be able to update the users personal information", async () => {
     }
   });
 
-  it("should be able to update users new address", async () => {
+  it("should allow users to be able to update their own address", async () => {
     const response = await supertest(app).put("/profile/address").send({
       
       address_id: "87",
@@ -105,7 +105,7 @@ it("should be able to update the users personal information", async () => {
     }
   });
 
-  it("should be able to remove users address", async () => {
+  it("should allow users to be able to remove their own address", async () => {
     const response = await supertest(app).put("/profile/address").send({
       
       address_id:"87"

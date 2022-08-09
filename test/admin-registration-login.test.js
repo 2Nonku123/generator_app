@@ -21,7 +21,7 @@ const DATABASE_URL = process.env.DATABASE_URL;
 let token
 let assert = require("assert");
 describe("The Admin registration API", function () {
-  it("should add new admin user", async () => {
+  it("should add new user", async () => {
     const response = await supertest(app).post("/admin/user")
     .send({
       user_name: "jjohn",
@@ -39,6 +39,29 @@ describe("The Admin registration API", function () {
       assert("Could not add user", message);
     } else {
       assert("New user added", message);
+    }
+  });
+
+  //new 
+  it("should login admin user", async () => {
+    const response = await supertest(app)
+    .post("/api/admin/login")
+    .send({
+      user_name: "jjohn",
+      password: "word45",
+      first_name: "John",
+      lastname: "Miz",
+      //user_id: "67",
+     
+      user_type_id:"87",
+      
+    });
+    token = response.body.token;
+    const { status, message } = response.body;
+    if (status == "error") {
+      assert("User could not be found, wrong user name or password", message);
+    } else {
+      assert("Login was successful", message);
     }
   });
 

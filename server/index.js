@@ -7,8 +7,8 @@ const pg = require("pg");
 const Hashids = require("hashids");
 const Joi = require("joi");
 
-/// id = 5
-/// id = AbZ
+
+
 
 // Customer Managers
 const CustomerManager = require("./manager/customer-manager");

@@ -23,6 +23,7 @@ let assert = require("assert");
 let token
 
 describe("The adding new products API", function () {
+  
 it("should allow admin user to add a new product", async () => {
   
     const response = await supertest(app)
