@@ -79,7 +79,7 @@ it("should not allow user to purchase a product out of stock", async () => {
   
   it("should allow user to remove items they nolonger want on the cart", async () => {
     const response = await supertest(app)
-      .put("/cart/:product_id")
+      .delete("/cart/:product_id")
       .set({ Authorization: `Bearer ${token}` });
 
     token = response.body.token;

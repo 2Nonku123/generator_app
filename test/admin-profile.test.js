@@ -48,7 +48,7 @@ it("should update admin personal details", async () => {
   });
 
   it("should delete/remove a customer user with no order history", async () => {
-    const response = await supertest(app).put("/admin/user/:id").send({
+    const response = await supertest(app).delete("/admin/user/:id").send({
       id:"89"
     });
     token = response.body.token;
@@ -61,7 +61,7 @@ it("should update admin personal details", async () => {
   });
 //new
   it("should not delete/remove a customer user with an order history", async () => {
-    const response = await supertest(app).put("/admin/user/:id").send({
+    const response = await supertest(app).delete("/admin/user/:id").send({
       id:"89"
     });
     token = response.body.token;

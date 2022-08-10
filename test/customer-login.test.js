@@ -34,19 +34,19 @@ describe("The Customer login API", function () {
         
       });
 
-      it("should not log in when username and password do not match", async () => {
-        const response = await supertest(app).post("/api/login").send({
-          user_name: "Mattm2",
-          password: "pass123",
-        });
-        token = response.body.token;
-        const { status, message } = response.body;
-        if (status == "error") {
-          assert("User could not be found, wrong user name or password", message);
-        } else {
-          assert("Login was successful", message);
-        }
-      });
+      //it("should not log in when username and password do not match", async () => {
+       // const response = await supertest(app).post("/api/login").send({
+         // user_name: "Mattm2",
+         // password: "pass123",
+        //});
+        //token = response.body.token;
+        //const { status, message } = response.body;
+        //if (status == "error") {
+          //assert("User could not be found, wrong user name or password", message);
+        //} else {
+         // assert("Login was successful", message);
+        //}
+      //});
     
 
     

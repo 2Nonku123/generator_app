@@ -106,7 +106,7 @@ it("should allow users to be able to update their first and last names", async (
   });
 
   it("should allow users to be able to remove their own address", async () => {
-    const response = await supertest(app).put("/profile/address").send({
+    const response = await supertest(app).delete("/profile/address").send({
       
       address_id:"87"
       
