@@ -1,7 +1,17 @@
 module.exports = function ProductAdminManager(pool) {
   async function getProductType() {
-    const result = await pool.query(`select * from product_type`);
+    const result = await pool.query(
+      `select * from product_type ORDER BY product_type.name`
+      );
     return result.rows;
+  }
+
+  async function getCategory(category_id) {
+    const result = await pool.query(
+      `select * from product_type WHERE id = $1`,
+      [category_id]
+    );
+    return result.rows.length > 0 ? result.rows[0] : null;
   }
 
   async function getProducts(
@@ -32,10 +42,18 @@ module.exports = function ProductAdminManager(pool) {
 
     const result = await pool.query(
       `SELECT
-      product.id, product.product_name, 
-      product.price, description, product.quantity, product.available, 
-      product.rental_duration, product.rental_duration_type, product.product_image, 
-      product_type.name as "product_type",product.product_type_id,is_rentalble
+      product."id",
+      product.product_name, 
+      product.price,
+      product.description,
+      product.quantity,
+      product.available, 
+      product.rental_duration,
+      product.rental_duration_type,
+      product.product_image, 
+      product_type."name" AS "product_type,
+      product.product_type_id,
+      product.is_rentalble
       FROM product
       INNER JOIN product_type ON product.product_type_id = product_type.id
       where product_type.id = $1 ${outOfOrderFilter} ${constraint}`,
@@ -73,10 +91,18 @@ module.exports = function ProductAdminManager(pool) {
 
     const result = await pool.query(
       `SELECT
-      product.id, product.product_name, 
-      product.price, description, product.quantity, product.available, 
-      product.rental_duration, product.rental_duration_type, product.product_image, 
-      product_type.name as "product_type",product.product_type_id, is_rentalble
+      product."id",
+      product.product_name, 
+      product.price,
+      product.description,
+      product.quantity,
+      product.available, 
+      product.rental_duration,
+      product.rental_duration_type,
+      product.product_image, 
+      product_type."name" AS product_type,
+      product.product_type_id,
+      product.is_rentalble
       FROM product
       INNER JOIN product_type ON product.product_type_id = product_type.id
       where lower(product.product_name) LIKE $1 ${outOfOrderFilter} ${constraint}`,
@@ -88,12 +114,19 @@ module.exports = function ProductAdminManager(pool) {
 
   async function getProduct(product_id) {
     const result = await pool.query(
-      ` SELECT
-    product.id, product.product_name, product.description,
-    product.price, product.quantity, product.available, 
-    product.rental_duration, product.rental_duration_type, product.product_image, 
-    product_type.name as "product_type",
-    product.product_type_id,product.product_type_id, is_rentalble
+      `SELECT
+    product."id",
+    product.product_name,
+    product.description,
+    product.price,
+    product.quantity,
+    product.available, 
+    product.rental_duration, 
+    product.rental_duration_type, 
+    product.product_image, 
+    product_type."name" AS product_type,
+    product.product_type_id,
+    product.is_rentalble
     FROM product
     INNER JOIN product_type ON product.product_type_id = product_type.id
     WHERE product.id = $1 AND product.available = true LIMIT 1`,
@@ -117,7 +150,7 @@ module.exports = function ProductAdminManager(pool) {
         iObject.rental_duration,
         iObject.rental_duration_type,
         iObject.product_type_id,
-        iObject.product_image,
+        "",
       ]
     );
 
@@ -129,7 +162,7 @@ module.exports = function ProductAdminManager(pool) {
       const result = await pool.query(
         `UPDATE product SET product_name = $1, description = $2, price = $3, quantity = $4, 
       available = $5, is_rentalble = $6, rental_duration = $7, rental_duration_type = $8, 
-      product_type_id = $9, product_image = $10, WHERE id = $11`,
+      product_type_id = $9 WHERE id = $10`,
         [
           iObject.product_name,
           iObject.description,
@@ -140,7 +173,6 @@ module.exports = function ProductAdminManager(pool) {
           iObject.rental_duration,
           iObject.rental_duration_type,
           iObject.product_type_id,
-          iObject.product_image,
           iObject.id,
         ]
       );
@@ -160,6 +192,45 @@ module.exports = function ProductAdminManager(pool) {
     return result.rowCount;
   }
 
+  async function updateCategory(iObject) {
+    const result = await pool.query(
+      `UPDATE product_type SET name = $1 WHERE product_type.id = $2;`,
+      [iObject.name, iObject.id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function productOrdered(product_id) {
+    const result = await pool.query(
+      `SELECT
+      COUNT(user_order_product."id") as "count"
+      FROM user_order_product
+      WHERE user_order_product.product_id = $1 LIMIT 1`,
+      [product_id]
+    );
+
+    return result.rowCount > 0 ? result.rows[0] : null;
+  }
+
+  async function updateCategoryImage(product_type_id, image) {
+    const result = await pool.query(
+      `UPDATE product_type SET image = $1 WHERE product_type.id = $2;`,
+      [image, product_type_id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function updateProductImage(product_id, image) {
+    const result = await pool.query(
+      `UPDATE product SET product_image = $1 WHERE product.id = $2;`,
+      [image, product_id]
+    );
+
+    return result.rowCount;
+  }
+
   return {
     getProductType,
     getProduct,
@@ -168,5 +239,10 @@ module.exports = function ProductAdminManager(pool) {
     addProduct,
     updateProduct,
     removeProduct,
+    productOrdered,
+    updateCategory,
+    updateCategoryImage,
+    updateProductImage,
+    getCategory,
   };
 };

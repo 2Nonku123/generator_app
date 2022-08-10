@@ -10,6 +10,31 @@ module.exports = function UserAdminManager(pool) {
     return result.rows;
   }
 
+  async function getUserSearch(search_text) {
+    const searchTerm = "%" + `${search_text.toLowerCase()}` + "%";
+    const result = await pool.query(
+      `SELECT store_user.id, first_name, lastname, user_name, 
+      email_address, contact_number, date_registered, user_type_id, locked, locked_date
+      ,user_type.description AS user_type
+      FROM store_user
+      INNER JOIN user_type ON store_user.user_type_id = user_type."id" 
+      WHERE lower(first_name) LIKE $1
+      OR lower(lastname) LIKE $2
+      OR lower(user_name) LIKE $3
+      OR lower(email_address) LIKE $4
+      OR lower(contact_number) LIKE $5
+      OR lower(user_type.description) = $6`,
+      [
+        searchTerm,
+        searchTerm,
+        searchTerm,
+        searchTerm,
+        searchTerm,
+        search_text.toLowerCase(),
+      ]
+    );
+    return result.rows;
+  }
   async function getUser(user_id) {
     const result = await pool.query(
       `SELECT store_user.id, first_name, lastname, user_name, email_address, contact_number, date_registered, user_type_id, locked, locked_date 
@@ -65,7 +90,7 @@ module.exports = function UserAdminManager(pool) {
       `SELECT
       (SELECT COUNT(store_user.id) FROM store_user) as "user_count", 
       (SELECT COUNT(product.id) FROM product) as "product_count", 
-      (SELECT COUNT(user_order.id) FROM user_order) as "order_count"`
+      (SELECT COUNT(user_order.id) FROM user_order) WHERE is_cart = false) as "order_count"`
     );
 
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -83,6 +108,7 @@ module.exports = function UserAdminManager(pool) {
 
   return {
     getUser,
+    getUserSearch,
     getUsers,
     addUser,
     updateUser,

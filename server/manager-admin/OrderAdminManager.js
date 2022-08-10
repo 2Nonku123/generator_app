@@ -1,102 +1,102 @@
 module.exports = function OrderAdminManager(pool) {
-  async function addOrder(user_id) {
-    const result = await pool.query(
-      `INSERT INTO user_order(user_id) VALUES($1);`,
-      [user_id]
-    );
-
-    return result.rowCount;
-  }
-
-  async function hasCart(user_id) {
-    const result = await pool.query(
-      `SELECT 
-      COUNT(user_order.id) AS "carts"
-      FROM user_order 
-      WHERE user_id = $1 AND is_cart = true LIMIT 1`,
-      [user_id]
-    );
-
-    return result.rowCount > 0 && result.rows[0].carts > 0;
-  }
-
-  async function getOrderCart(user_id) {
-    const result = await pool.query(
-      `SELECT 
-      user_order.id,
-      user_order.order_date,
-      user_order.order_total,
-      user_order.order_items, 
-      order_status.description as "order_status"
-      FROM user_order 
-      INNER JOIN order_status ON order_status.id = user_order.order_status_id
-      WHERE user_id = $1 AND is_cart = true LIMIT 1`,
-      [user_id]
-    );
-
-    return result.rowCount > 0 ? result.rows[0] : null;
-  }
-
-  async function getOrder(order_id, user_id, is_cart = false) {
-    const result = await pool.query(
-      `SELECT 
-      user_order.id,
-      user_order.order_date,
-      user_order.order_total,
-      user_order.order_items, 
-      order_status.description as "order_status"
-      FROM user_order 
-      INNER JOIN order_status ON order_status.id = user_order.order_status_id
-      WHERE user_order.id = $1 AND user_id = $2 AND is_cart = $3 LIMIT 1`,
-      [order_id, user_id, is_cart]
-    );
-
-    return result.rowCount > 0 ? result.rows[0] : null;
-  }
-
-  async function getOrders(user_id, is_cart = false) {
-    const result = await pool.query(
-      `SELECT 
-      user_order.id,
-      user_order.order_date,
-      user_order.order_total,
-      user_order.order_items, 
-      order_status.description as "order_status"
-      FROM user_order 
-      INNER JOIN order_status ON order_status.id = user_order.order_status_id
-      WHERE user_id = $1 AND is_cart = $2`,
-      [user_id, is_cart]
-    );
-
-    return result.rows;
-  }
-
-  async function getOrderProductsCart(order_id) {
+  async function getOrder(order_id) {
     const result = await pool.query(
       `SELECT
-      product."id", 
-      product.product_name, 
-      product.description,
-      product.quantity,
-      product.price,
-      user_order_product.product_price, 
-      user_order_product.product_quantity, 
-      user_order_product.sub_total, 
-      user_order_product.date_returned, 
-      user_order_product.rental_end_date, 
-      user_order_product.rental_start_date, 
-      user_order_product.rental_returned, 
-      user_order_product.has_rental, 
-      product.product_image, 
-      product_type.name as product_type
-      FROM user_order_product
-      INNER JOIN product ON user_order_product.product_id = product."id"
-      INNER JOIN product_type ON product.product_type_id = product_type."id"
-      WHERE order_id = $1`,
+      store_user."id" AS user_id,
+      store_user.first_name,
+      store_user.lastname,
+      TO_CHAR(user_order.order_date,'hh:ii dd Mon yyyy') AS order_date,
+      user_order.order_total,
+      user_order.order_items,
+      user_order.is_delivery,
+      user_order."id" AS order_id,
+      order_status_id,
+      order_status.description AS order_status,
+      user_order.delivery_address,
+      user_order.order_status_id
+      FROM store user
+      INNER JOIN user_order ON store_user."id" = user_order.user_id
+      INNER JOIN order_status ON order_status."id" =user_order.order_status_id
+      WHERE is_cart = false AND user_order.id = $1 LIMIT 1` 
       [order_id]
+      );
+
+    return result.rowCount > 0 ? result.rows[0] : null;
+  }
+
+  async function getOrdersByID(search_id) {
+    const result = await pool.query(
+      `SELECT 
+      store_user."id" AS user_id, 
+      store_user.first_name, 
+      store_user.lastname, 
+      TO_CHAR(user_order.order_date,'hh:ii dd Mon yyyy') AS order_date, 
+      user_order.order_total,
+      user_order.order_items, 
+      user_order.is_delivery, 
+      user_order."id" AS order_id, 
+      order_status_id,
+      order_status.description AS order_status,
+      user_order.delivery_address,
+      user_order.order_status_id
+      FROM store_user
+      INNER JOIN user_order ON store_user."id" = user_order.user_id
+      INNER JOIN order_status ON order_status."id" = user_order.order_status_id
+      WHERE is_cart = false AND user_order."id" = $1`,
+      [search_id]
     );
 
     return result.rows;
+  }
+
+  async function getOrdersByName(search_text){
+    const search = "%" + search_text.toLowerCase() +"%";
+    const result = await pool.query(
+      `SELECT
+      store_user."id" AS user_id,
+      store_user.first_name,
+      store_user.lastname,
+      TO_CHAR(user_order.order_date,'hh:ii dd Mon yyyy') AS order_date,
+      user_order.order_total,
+      user_order.order_items,
+      user_order.is_delivery,
+      user_order."id" AS order_id,
+      order_status_id,
+      order_status.description AS order_status,
+      user_order.delivery_address,
+      user_order.order_status_id
+      FRFOM store_user
+      INNER JOIN user_order ON store_order."id" = user_order.user_id
+      INNER JOIN order_status ON order_status."id" = user_order.order_status_id
+      WHERE is_cart = false AND ( LOWER(store_user.first_name) LIKE $1 OR LOWER(store_user.lastname) LIKE $2)`,
+      [search, search]
+    );
+
+    return result.rows;
+  }
+
+  async function getOrders(){
+    const result = await pool.query(
+      `SELECT 
+      store_user."id" AS user_id,
+      store_user.first_name,
+      store_user.lastname,
+      TO_CHAR(user_order.order_date,'hh:ii dd Mon yyyy') AS order_date,
+      user_order.order_total,
+      user_order.order_items,
+      user_order.is_delivery,
+      user_order."id" AS order_id,
+      order_status_id,
+      order_status.description AS order_status,
+      user_order.delivery_address,
+      user_order.order_status_id
+      FROM store_user
+      INNER JOIN user_order ON store_user."id" = user_order.user_id
+      INNER JOIN order_status ON order_status."id" = user_order.order_status-id
+      WHERE is_cart = false `
+      );
+      
+      return result.rows;
   }
 
   async function getOrderProducts(order_id) {
@@ -191,7 +191,7 @@ module.exports = function OrderAdminManager(pool) {
     return result.rowCount;
   }
 
-  async function clearCart(order_id) {
+  async function clearOrder(order_id) {
     const result = await pool.query(
       `DELETE FROM user_order_product
       WHERE order_id = $1`,
@@ -305,12 +305,30 @@ module.exports = function OrderAdminManager(pool) {
     return result.rowCount;
   }
 
+  async function updateOrderStatus(order_status_id, order_id) {
+    const result = await pool.query(
+      `UPDATE user_order SET order_status_id = $1 WHERE user_order.id = $2;`,
+      [order_status_id, order_id]
+    );
+
+    return result.rowCount;
+  }
+  
+  async function userOrdered(product_id) {
+    const result = await pool.query(
+      `SELECT
+      COUNT(user_order."id") as "count"
+      FROM user_order
+      WHERE user_order.user_id = $1 LIMIT 1`,
+      [product_id]
+    );
+
+    return result.rowCount > 0 ? result.rows[0] : null;
+  }
+
   return {
-    addOrder,
     getOrder,
-    getOrderCart,
     getOrders,
-    hasCart,
     getOrderProducts,
     addOrderPayment,
     getOrderTotals,
@@ -319,11 +337,14 @@ module.exports = function OrderAdminManager(pool) {
     addOrderProduct,
     updateOrderProduct,
     removeOrderProduct,
-    clearCart,
+    clearOrder,
     updateProductQauntity,
     checkOrderQuantity,
     clearPayments,
     updateProductQauntityReverse,
-    getOrderProductsCart,
+    getOrdersByName,
+    getOrdersByID,
+    updateOrderStatus,
+    userOrdered,
   };
 };

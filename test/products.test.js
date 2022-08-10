@@ -19,7 +19,7 @@ let assert = require("assert");
 
 describe("The products API", function () {
   
- it("should be able to find products in the store", async () => {
+ it(" user should be able to find products in the store", async () => {
     const response = await supertest(app)
     .get("/store/product/:product_id")
     //.set({ Authorization: `Bearer ${token}`});
@@ -28,18 +28,98 @@ describe("The products API", function () {
     if (status == "error") {
       assert("res.sendStatus(404)", message);
     } else {
-      assert("res.sendStatus(400)")
+      assert("res.sendStatus(200)")
+    }
+    
+  });
+
+  it(" admin user should be able to add products in the store", async () => {
+    const response = await supertest(app)
+    .post("/admin/product/")
+    //.set({ Authorization: `Bearer ${token}`});
+    //token = response.body.token;
+    const { status, message}= response.body;
+    if (status == "error") {
+      assert("Could not add product", message);
+    } else {
+      assert("product added")
+    }
+    
+  });
+
+  it(" admin user should be able to update products in the store", async () => {
+    const response = await supertest(app)
+    .put("/admin/product/")
+    //.set({ Authorization: `Bearer ${token}`});
+    //token = response.body.token;
+    const { status, message}= response.body;
+    if (status == "error") {
+      assert("Could not update product", message);
+    } else {
+      assert("product updated")
     }
     
   });
   
-  
-  //it ("should be able to search for items in store by name", async () =>{
-   // const search_name = "dal";
-    //const response = await supertest(app)
+  it(" admin user should be able to remove products that are not ordered in the store", async () => {
+    const response = await supertest(app)
+    .delete("/admin/product/:product_id")
+    //.set({ Authorization: `Bearer ${token}`});
+    //token = response.body.token;
+    const { status, message}= response.body;
+    if (status == "error") {
+      assert("Could not find product", message);
+    } else {
+      assert("Product removed")
+    }
+    
+  });
+//new
+  it("should not allow admin user to remove products that are already ordered by customers in the store", async () => {
+    const response = await supertest(app)
+    .delete("/admin/product/:product_id")
+    //.set({ Authorization: `Bearer ${token}`});
+    //token = response.body.token;
+    const { status, message}= response.body;
+    if (status == "error") {
+      assert("Cannot remove a ordered product", message);
+    } else {
+      assert("Product removed")
+    }
+    
+  });
+  //new2
+  it("should allow admin user to update product types in the store", async () => {
+    const response = await supertest(app)
+    .put("/admin/category")
+    //.set({ Authorization: `Bearer ${token}`});
+    //token = response.body.token;
+    const { status, message}= response.body;
+    if (status == "error") {
+      assert("Could not update category", message);
+    } else {
+      assert("Category updated")
+    }
+    
+  });
+
+  it ("should be able to search for items in store by name", async () =>{
+    const search_name = "dal";
+    const response = await supertest(app)
+    .get('/store/search/:search_name')
+    const search = response.body;
+    //assert.equal(search_name, search.length);
+    const {status, message}= response.body;
+    if (status == "error") {
+      assert("res.sendStatus(404)", message);
+
+    }else {
+      assert("res.sendStatus(200)")
+    }
+    
     //.get(`/store/search/${search_name}`)
-   // .expect(200);
+    //.expect(200);
     //const search = response.body;
-    //assert.equal(1, search.length);
-  //})
+    //assert.equal(40, search.length);
+  })
 });

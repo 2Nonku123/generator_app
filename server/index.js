@@ -6,9 +6,12 @@ const cors = require("cors");
 const pg = require("pg");
 const Hashids = require("hashids");
 const Joi = require("joi");
+const fs = require("fs");
+//image upload
+const Resize = require("./image-resize/Resize");
+const multer = require("multer");
+const path = require("path");
 
-/// id = 5
-/// id = AbZ
 
 // Customer Managers
 const CustomerManager = require("./manager/customer-manager");
@@ -18,6 +21,9 @@ const StoreManager = require("./manager/store-manager");
 const OrderAdminManager = require("./manager-admin/OrderAdminManager");
 const ProductAdminManager = require("./manager-admin/ProductAdminManager");
 const UserAdminManager = require("./manager-admin/UserAdminManager");
+//const ReportManager = require("./manager-admin/reportManager");
+
+
 
 const Pool = pg.Pool;
 require("dotenv").config();
@@ -42,21 +48,25 @@ app.use(express.urlencoded({ extended: false }));
 
 // Database config
 const { parse } = require("pg-connection-string");
+const { json } = require("express");
 
 const config = parse(connection_string);
-/*
-config.ssl = {
-  rejectUnauthorized: false,
-};*/
+
+if (connection_string.indexOf("localhost") == -1) {
+  config.ssl = {
+    rejectUnauthorized: false,
+  };
+}
 const pool = new Pool(config);
 //////////////////////////////
 
-const customerManager = CustomerManager(pool);
+const userManager = CustomerManager(pool);
 const storeManager = StoreManager(pool);
 
 const orderAdminManager = OrderAdminManager(pool);
 const productAdminManager = ProductAdminManager(pool);
 const userAdminManager = UserAdminManager(pool);
+//const reportManager = ReportManager(pool);
 
 const PORT = process.env.PORT || 4017;
 
@@ -69,6 +79,12 @@ function hashID(value, saltKey) {
 }
 
 ////////////////////////////
+//image resize // https://appdividend.com/2022/03/03/node-express-image-upload-and-resize/
+const upload = multer({
+  limits: {
+    fileSize: 4 * 1024 * 1024,
+  },
+});
 
 // New / Existing User Routes
 
@@ -92,7 +108,7 @@ app.post("/api/login", async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .getUserByUserName(user_name)
     .then((user_account) => {
       if (bcrypt.compareSync(password, user_account.password)) {
@@ -159,7 +175,7 @@ app.post("/api/signup", async function (req, res) {
     return;
   }
 
-  let user_account = await customerManager.getUserByUserName(user_name);
+  let user_account = await userManager.getUserByUserName(user_name);
 
   if (user_account != null && user_account.id != null) {
     res.json({
@@ -170,7 +186,7 @@ app.post("/api/signup", async function (req, res) {
   }
 
   const encrypted_password = bcrypt.hashSync(password, 10);
-  const result = await customerManager.registerUser(
+  const result = await userManager.registerUser(
     first_name,
     lastname,
     encrypted_password,
@@ -181,7 +197,7 @@ app.post("/api/signup", async function (req, res) {
   );
 
   if (result > 0) {
-    user_account = await customerManager.getUserByUserName(user_name);
+    user_account = await userManager.getUserByUserName(user_name);
     const user = {
       user_id: user_account.id,
       first_name: first_name,
@@ -209,7 +225,7 @@ app.post("/api/signup", async function (req, res) {
 // User Profile Routes
 
 app.get("/profile/", checkAuthorizationToken, async function (req, res) {
-  customerManager
+  userManager
     .getProfile(req.user.user_id)
     .then((profileInfo) => res.json(profileInfo))
     .catch((error) =>
@@ -239,7 +255,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateUserPersonal(first_name, lastname, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -278,7 +294,7 @@ app.put("/profile/contact", checkAuthorizationToken, async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .updateUserContact(email_address, contact_number, req.user.user_id)
     .then((updateStatus) =>
       res.json({
@@ -326,7 +342,7 @@ app.put(
       return;
     }
     const encrypted_password = bcrypt.hashSync(password, 10);
-    customerManager
+    userManager
       .updatePassword(encrypted_password, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -345,7 +361,7 @@ app.put(
 );
 
 app.get("/profile/address", checkAuthorizationToken, async function (req, res) {
-  customerManager
+  userManager
     .getAddressAll(req.user.user_id)
     .then((addressData) => res.json(addressData))
     .catch((error) => res.json([]));
@@ -372,7 +388,7 @@ app.get(
       return;
     }
 
-    customerManager
+    userManager
       .getAddress(address_id, req.user.user_id)
       .then((addressData) =>
         res.json({
@@ -411,7 +427,7 @@ app.post(
       return;
     }
 
-    customerManager
+    userManager
       .addAddress(housenumber, street, province, postal_code, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -450,7 +466,7 @@ app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .updateAddress(
       housenumber,
       street,
@@ -495,7 +511,7 @@ app.delete(
       return;
     }
 
-    customerManager
+    userManager
       .removeAddress(address_id, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1088,7 +1104,7 @@ app.post("/api/admin/login", async function (req, res) {
     return;
   }
 
-  customerManager
+  userManager
     .getUserByUserName(user_name)
     .then((user_account) => {
       if (
@@ -1101,7 +1117,7 @@ app.post("/api/admin/login", async function (req, res) {
           lastname: user_account.lastname,
           user_type: "admin",
         };
-        const accessKey = jwt.sign(user, jwt_admin_key, {
+        const accessKey = jwt.sign(user, jwt_key, {
           expiresIn: "24h",
         });
 
@@ -1131,7 +1147,7 @@ app.get(
   "/admin/profile/",
   checkAdminAuthorizationToken,
   async function (req, res) {
-    customerManager
+    userManager
       .getProfile(req.user.user_id)
       .then((profileInfo) => res.json(profileInfo))
       .catch((error) =>
@@ -1162,7 +1178,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateUserPersonal(first_name, lastname, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1204,7 +1220,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateUserContact(email_address, contact_number, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1253,7 +1269,7 @@ app.put(
       return;
     }
     const encrypted_password = bcrypt.hashSync(password, 10);
-    customerManager
+    userManager
       .updatePassword(encrypted_password, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1275,7 +1291,7 @@ app.get(
   "/admin/profile/address",
   checkAdminAuthorizationToken,
   async function (req, res) {
-    customerManager
+    userManager
       .getAddressAll(req.user.user_id)
       .then((addressData) => res.json(addressData))
       .catch((error) => res.json([]));
@@ -1303,7 +1319,7 @@ app.get(
       return;
     }
 
-    customerManager
+    userManager
       .getAddress(address_id, req.user.user_id)
       .then((addressData) =>
         res.json({
@@ -1342,7 +1358,7 @@ app.post(
       return;
     }
 
-    customerManager
+    userManager
       .addAddress(housenumber, street, province, postal_code, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1384,7 +1400,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateAddress(
         housenumber,
         street,
@@ -1430,7 +1446,7 @@ app.delete(
       return;
     }
 
-    customerManager
+    userManager
       .removeAddress(address_id, req.user.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1455,10 +1471,35 @@ app.get("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
     .getUsers()
     .then((userResult) => res.json(userResult))
     .catch((error) => {
-      console.log(error);
       res.json([]);
     });
 });
+
+app.get(
+  "/admin/user/search/:search_text",
+  checkAdminAuthorizationToken,
+  async (req, res) => {
+    const search =
+      req.params.search_text == null ? "" : req.params.search_text.trim();
+    let scheme = Joi.object({
+      search_text: Joi.string().min(3).required(),
+    });
+
+    let sResult = scheme.validate({ search_text: search });
+
+    if (sResult.error !== undefined) {
+      res.json([]);
+      return;
+    }
+
+    userAdminManager
+      .getUserSearch(search)
+      .then((userResult) => res.json(userResult))
+      .catch((error) => {
+        res.json([]);
+      });
+  }
+);
 
 // Select User
 app.get("/admin/user/:id", checkAdminAuthorizationToken, async (req, res) => {
@@ -1490,6 +1531,7 @@ app.post("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
     email_address: Joi.string().email().max(250).required(),
     contact_number: Joi.string().min(1).required(),
     user_type_id: Joi.number().integer().min(1).max(2).required(),
+    locked: Joi.boolean().optional().empty(),
   });
 
   let sResult = scheme.validate(req.body);
@@ -1514,7 +1556,7 @@ app.post("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
     .then((result) =>
       res.json({
         status: result > 0 ? "success" : "error",
-        message: result > 0 ? "User added" : "Could not add user",
+        message: result > 0 ? "New User added" : "Could not add user",
       })
     )
     .catch((error) =>
@@ -1539,6 +1581,9 @@ app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
 
   if (sResult.error !== undefined) {
     res.json({ status: "error", message: sResult.error.details[0].message });
+    return;
+  } else if (iObject.id == req.user.user_id) {
+    res.json({ status: "error", message: "Cannot edit your own Account" });
     return;
   }
   let iObject = {
@@ -1573,22 +1618,37 @@ app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
 
 // Delete User
 app.delete(
-  "/admin/user/:id",
+  "/admin/user/:user_id",
   checkAdminAuthorizationToken,
   async (req, res) => {
-    let iObject = { id: req.params.id };
+    let { user_id } = req.params;
     let scheme = Joi.object({
       id: Joi.number().integer().required(),
     });
 
-    let sResult = scheme.validate(iObject);
+    let sResult = scheme.validate({ id: user_id });
 
     if (sResult.error !== undefined) {
       res.json({ status: "error", message: sResult.error.details[0].message });
       return;
+    } else if (user_id == req.user.user_id) {
+      res.json({ status: "error", message: "Cannot remove your own Account" });
+      return;
     }
+
+    const userHasOrder = await orderAdminManager.userOrdered(user_id);
+
+    if (userHasOrder != null && userHasOrder.count > 0) {
+      res.json({
+        status: "error",
+        message: "Cannot remove a user who has a order history",
+      });
+
+      return;
+    }
+
     userAdminManager
-      .deleteUser(iObject.id)
+      .deleteUser(user_id)
       .then((result) =>
         res.json({
           status: result > 0 ? "success" : "error",
@@ -1604,6 +1664,56 @@ app.delete(
           message: "Could not delete user / User not found",
         })
       );
+  }
+);
+
+// Reset Password
+app.put(
+  "/admin/user/password/reset/:id",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    let iObject = { id: req.params.id };
+    let scheme = Joi.object({
+      id: Joi.number().integer().required(),
+    });
+
+    let sResult = scheme.validate(iObject);
+
+    if (sResult.error !== undefined) {
+      res.json({ status: "error", message: sResult.error.details[0].message });
+      return;
+    } else if (iObject.id == req.user.user_id) {
+      res.json({ status: "error", message: "Cannot remove your own Account" });
+      return;
+    }
+
+    const user = await userManager.getUserByID(iObject.id);
+
+    if (user != null) {
+      const encrypted_password = bcrypt.hashSync(user.user_name, 10);
+      userManager
+        .updatePassword(encrypted_password, iObject.id)
+        .then((updateStatus) =>
+          res.json({
+            status: updateStatus > 0 ? "success" : "error",
+            message:
+              updateStatus > 0
+                ? "Password reset to : " + user.user_name
+                : "Could not update password",
+          })
+        )
+        .catch((error) =>
+          res.json({
+            status: "error",
+            message: "Could not update password",
+          })
+        );
+    } else {
+      res.json({
+        status: "error",
+        message: "Could not update password / User not found",
+      });
+    }
   }
 );
 
@@ -1649,7 +1759,7 @@ app.put(
     }
 
     const encrypted_password = bcrypt.hashSync(iObject.password, 10);
-    customerManager
+    userManager
       .updatePassword(encrypted_password, iObject.user_id)
       .then((updateStatus) =>
         res.json({
@@ -1683,7 +1793,7 @@ app.get(
       res.status(400).send(sResult.error.details[0].message);
       return;
     }
-    customerManager
+    userManager
       .getAddressAll(user_id)
       .then((addressData) => res.json(addressData))
       .catch((error) => res.json([]));
@@ -1708,7 +1818,7 @@ app.get(
       return;
     }
 
-    customerManager
+    userManager
       .getAddress(address_id, user_id)
       .then((addressData) => res.json(addressData))
       .catch((error) => res.json(null));
@@ -1742,7 +1852,7 @@ app.post(
       return;
     }
 
-    customerManager
+    userManager
       .addAddress(housenumber, street, province, postal_code, user_id)
       .then((updateStatus) =>
         res.json({
@@ -1787,7 +1897,7 @@ app.put(
       return;
     }
 
-    customerManager
+    userManager
       .updateAddress(
         housenumber,
         street,
@@ -1834,7 +1944,7 @@ app.delete(
       return;
     }
 
-    customerManager
+    userManager
       .removeAddress(address_id, user_id)
       .then((updateStatus) =>
         res.json({
@@ -1862,6 +1972,47 @@ app.get(
       .getProductType()
       .then((productTypes) => res.json(productTypes))
       .catch((error) => res.json([]));
+  }
+);
+
+app.put(
+  "/admin/category/",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    let scheme = Joi.object({
+      id: Joi.number().integer().required(),
+      name: Joi.string().min(1).required(),
+    });
+
+    let sResult = scheme.validate(req.body);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+      return;
+    }
+    let iObject = {
+      id: req.body.id,
+      name: req.body.name,
+    };
+
+    productAdminManager
+      .updateCategory(iObject)
+      .then((updateStatus) =>
+        res.json({
+          status: updateStatus > 0 ? "success" : "error",
+          message:
+            updateStatus > 0 ? "Category updated" : "Could not update category",
+        })
+      )
+      .catch((error) =>
+        res.json({
+          status: "error",
+          message: "Could not update category",
+        })
+      );
   }
 );
 
@@ -1971,22 +2122,27 @@ app.post(
   checkAdminAuthorizationToken,
   async function (req, res) {
     let scheme = Joi.object({
+      id: Joi.number().min(0).required(),
       product_name: Joi.string().min(1).required(),
-      description: Joi.string().min(1).required().empty().optional(),
-      price: Joi.number().required(),
-      quantity: Joi.number().integer().required(),
+      description: Joi.string().min(1).empty().optional(),
+      price: Joi.number().min(0).required(),
+      quantity: Joi.number().min(0).integer().required(),
       available: Joi.bool().required(),
       is_rentalble: Joi.bool().required(),
       rental_duration: Joi.number().integer().required(),
-      rental_duration_type: Joi.number().integer().required(),
-      product_type_id: Joi.number().integer().required(),
-      product_image: Joi.string().min(1).required().empty().optional(),
+      rental_duration_type: Joi.number().integer().min(0).max(5).required(),
+      product_type_id: Joi.number().integer().min(1).max(4).required(),
+      product_image: Joi.string().empty().min(0).optional(),
+      product_type: Joi.string().empty().min(0).optional(),
     });
 
     let sResult = scheme.validate(req.body);
 
     if (sResult.error !== undefined) {
-      res.status(400).send(sResult.error.details[0].message);
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
       return;
     }
     let iObject = {
@@ -1999,7 +2155,6 @@ app.post(
       rental_duration: req.body.rental_duration,
       rental_duration_type: req.body.rental_duration_type,
       product_type_id: req.body.product_type_id,
-      product_image: req.body.product_image,
     };
 
     productAdminManager
@@ -2024,23 +2179,27 @@ app.put(
   checkAdminAuthorizationToken,
   async function (req, res) {
     let scheme = Joi.object({
-      id: Joi.number().required(),
+      id: Joi.number().min(0).required(),
       product_name: Joi.string().min(1).required(),
-      description: Joi.string().min(1).required().empty().optional(),
-      price: Joi.number().required(),
-      quantity: Joi.number().integer().required(),
+      description: Joi.string().min(1).empty().optional(),
+      price: Joi.number().min(0).required(),
+      quantity: Joi.number().min(0).integer().required(),
       available: Joi.bool().required(),
       is_rentalble: Joi.bool().required(),
       rental_duration: Joi.number().integer().required(),
-      rental_duration_type: Joi.number().integer().required(),
-      product_type_id: Joi.number().integer().required(),
-      product_image: Joi.string().min(1).required().empty().optional(),
+      rental_duration_type: Joi.number().integer().min(0).max(5).required(),
+      product_type_id: Joi.number().integer().min(1).max(4).required(),
+      product_image: Joi.string().empty().min(0).optional(),
+      product_type: Joi.string().empty().min(0).optional(),
     });
 
     let sResult = scheme.validate(req.body);
 
     if (sResult.error !== undefined) {
-      res.status(400).send(sResult.error.details[0].message);
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
       return;
     }
     let iObject = {
@@ -2053,7 +2212,6 @@ app.put(
       rental_duration: req.body.rental_duration,
       rental_duration_type: req.body.rental_duration_type,
       product_type_id: req.body.product_type_id,
-      product_image: req.body.product_image,
       id: req.body.id,
     };
 
@@ -2096,6 +2254,19 @@ app.delete(
       return;
     }
 
+    const productHasOrder = await productAdminManager.productOrdered(
+      product_id
+    );
+
+    if (productHasOrder != null && productHasOrder.count > 0) {
+      res.json({
+        status: "error",
+        message: "Cannot remove a ordered product",
+      });
+
+      return;
+    }
+
     productAdminManager
       .removeProduct(product_id)
       .then((updateStatus) =>
@@ -2116,6 +2287,370 @@ app.delete(
 
 ////////////////////////////////////////////////////////////
 
+//// Admin Order Routes
+
+app.get(
+  "/admin/order/",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    orderAdminManager
+      .getOrders()
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => res.json([]));
+  }
+);
+
+app.get(
+  "/admin/order/search/id/:search_id",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const search =
+      req.params.search_id == null ? 0 : req.params.search_id.trim();
+    let scheme = Joi.object({
+      search_id: Joi.number().integer().min(1).required(),
+    });
+
+    let sResult = scheme.validate({ search_id: search });
+
+    if (sResult.error !== undefined) {
+      res.json([]);
+      return;
+    }
+    orderAdminManager
+      .getOrdersByID(search)
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => res.json([]));
+  }
+);
+
+app.get(
+  "/admin/order/search/name/:search_text",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const search =
+      req.params.search_text == null ? "" : req.params.search_text.trim();
+    let scheme = Joi.object({
+      search_text: Joi.string().min(3).required(),
+    });
+
+    let sResult = scheme.validate({ search_text: search });
+
+    if (sResult.error !== undefined) {
+      res.json([]);
+      return;
+    }
+    orderAdminManager
+      .getOrdersByName(search)
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => res.json([]));
+  }
+);
+
+app.get(
+  "/admin/order/:order_id",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const { order_id } = req.params;
+
+    let scheme = Joi.object({
+      order_id: Joi.number().min(1).required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+
+      return;
+    }
+    orderAdminManager
+      .getOrder(order_id)
+      .then((orderInfo) =>
+        res.json({ status: "success", message: "", order: orderInfo })
+      )
+      .catch((error) =>
+        res.json({ status: "error", message: "Order could not be found" })
+      );
+  }
+);
+
+app.get(
+  "/admin/order/:order_id/items",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const { order_id } = req.params;
+
+    let scheme = Joi.object({
+      order_id: Joi.number().min(1).required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+
+      return;
+    }
+    orderAdminManager
+      .getOrder(order_id)
+      .then((order_info) => {
+        if (order_info != null) {
+          return order_info;
+        }
+
+        return Promise.reject();
+      })
+      .then((order_info) =>
+        orderAdminManager.getOrderProducts(order_info.order_id)
+      )
+      .then((orderInfo) => res.json(orderInfo))
+      .catch((error) => {
+        res.json([]);
+      });
+  }
+);
+
+app.put(
+  "/admin/order/:order_id/status",
+  checkAdminAuthorizationToken,
+  async function (req, res) {
+    const { order_id } = req.params;
+    const { status_id } = req.body;
+    let response;
+
+    let scheme = Joi.object({
+      order_id: Joi.number().min(1).required(),
+      status_id: Joi.number().min(4).max(7).required(),
+    });
+
+    let sResult = scheme.validate({
+      order_id: req.params.order_id,
+      status_id: req.body.status_id,
+    });
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+
+      return;
+    }
+
+    orderAdminManager
+      .getOrder(order_id)
+      .then((order_info) => {
+        if (order_info != null) {
+          if (order_info.order_status_id == 2) {
+            if (status_id != 6 && status_id != 7) {
+              return Promise.reject({
+                status: "error",
+                message: "You can only set an order as, cancelled or collected",
+              });
+            }
+          } else if (order_info.order_status_id == 3) {
+            if ((status_id != 4) & (status_id != 5) && status_id != 7) {
+              return Promise.reject({
+                status: "error",
+                message:
+                  "You can only set an order as, cancelled, delivered or on route",
+              });
+            }
+          } else if (order_info.order_status_id == 4) {
+            if (status_id != 5 && status_id != 7) {
+              return Promise.reject({
+                status: "error",
+                message:
+                  "You can only set an order as, cancelled or delivered ",
+              });
+            }
+          } /*else {
+            return Promise.reject({
+              status: "error",
+              message: "Invalid order status not allowed",
+            });
+          }*/
+
+          return orderAdminManager.updateOrderStatus(status_id, order_id);
+        }
+
+        return Promise.reject();
+      })
+      .then((status_result) => {
+        // if order is cancelled than we reverse the stock
+
+        response = {
+          status: status_result > 0 ? "success" : "error",
+          message: status_result
+            ? "Order status updated"
+            : "Could not update order status",
+        };
+        if (status_id == 7) {
+          return orderAdminManager.updateProductQauntityReverse(order_id);
+        }
+        return 0;
+      })
+      .then((result) => res.json(response))
+      .catch((error) => {
+        error.status != null && error.message != null
+          ? res.json(error)
+          : res.json({
+              status: "error",
+              message: "Could not set order status",
+            });
+      });
+  }
+);
+///
+
+
+//image upload reference: https://appdividend.com/2022/03/03/node-express-image-upload-and-resize/
+
+app.post(
+  "/admin/category/:category_id/image",
+  [checkAdminAuthorizationToken, upload.single("image")],
+  async function (req, res) {
+    const { category_id } = req.params;
+
+    let scheme = Joi.object({
+      category_id: Joi.number().required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+
+      return;
+    }
+
+    const imagePath = path.join(_dirname, "/public/images");
+    const oldPath = path.join(_dirname, "public");
+    const fileUpload = new Resize(imagePath);
+    if (!req.file) {
+      res.json({ status: "error", message: "Please provide an image" });
+      return;
+    }
+    const filename = await fileUpload.save(req.file.buffer);
+    let oldFile = "";
+    productAdminManager
+    .getCategory(category_id)
+    .then((result) => {
+      if(result == null) {
+        return Promise.reject();
+      }
+      oldFile = result.image;
+      return result;
+    })
+    .then((result) =>
+    productAdminManager.updateCategoryImage(
+      category_id,
+      `images/${filename}`
+    ))
+
+    .then((result) => {
+      if(result > 0) {
+        if(oldFile.trim() != "") {
+            removeFile(oldPath + `/${oldFile}`);
+          }
+          res.json({ status: "success", message: "Category image uploaded" });
+      }else {
+        removeFile(imagePath + `/${filename}`);
+        res.json({
+          status: "error",
+          message: "Could not upload category image",
+        });
+      }
+    })
+    .catch((error) => {
+      removeFile(imagePath + `/${filename}`);
+      res.json({
+        status: "error",
+        message: "Could not upload category image",
+      });
+    });
+  }
+);
+
+app.post(
+  "/admin/product/:product_id/image",
+  [checkAdminAuthorizationToken, upload.single("image")],
+  async function (req, res) {
+
+
+    const { product_id } = req.params;
+
+    let scheme = Joi.object({
+      product_id: Joi.number().required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.errror.details[0].message,
+      });
+
+      return;
+    }
+
+    const imagePath = path.join(_dirname, "/public/images");
+    const oldPath = path.join(_dirname, "public");
+    const fileUpload = new Resize(imagePath);
+    if (!req.file) {
+      res.json({ status: "error", message: "Please provide an image" });
+      return;
+    }
+    const filename = await fileUpload.save(req.file.buffer);
+    let oldFile = "";
+    productAdminManager
+    .getProduct(product_id)
+    .then((result) => {
+      if (reset == null) {
+        return Promise.reject();
+      }
+      oldFile = result.product_image;
+      return result;
+    })
+    .then((result) => 
+    productAdminManager.updateProductImage(product_id, `images/${filename}`)
+    )
+    .then((result) => {
+      if (result > 0) {
+        if (oldFile.trim() != "") {
+          removeFile(oldPath + `/${oldFile}`);
+        }
+        res.json({ status: "success", message: "Product image uploaded" });
+      } else {
+        removeFile(imagePath + `/${filename}`);
+        res.json({
+          status: "error",
+          message: "Could not upload product image",
+        });
+      }
+    })
+    .catch((error) => {
+      removeFile(imagePath + `/${filename}`);
+      res.json({
+        status: "error",
+        message: "Could not upload product image",
+        
+      });
+    });
+  }
+);
+
+////
 function checkAuthorizationToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ");
@@ -2142,8 +2677,8 @@ function checkAdminAuthorizationToken(req, res, next) {
     return res.sendStatus(401);
   }
 
-  jwt.verify(token[0], jwt_admin_key, (err, user) => {
-    if (!err) {
+  jwt.verify(token[0], jwt_key, (err, user) => {
+    if (!err && user.user_type == "admin") {
       req.user = user;
       next();
     } else {
@@ -2152,6 +2687,18 @@ function checkAdminAuthorizationToken(req, res, next) {
   });
 }
 
-app.listen(PORT, function () {
+function removeFile(file_path) {
+  try {
+    fs.unlinkSync(file_path);
+
+  }catch (err) {
+    //console.error(err);
+}
+  }
+
+// https://appdividend.com/2022/03/03/node-express-image-upload-and-resize/
+  function imageUpload(res, req, next) {}
+
+  app.listen(PORT, function () {
   console.log(`App started on port ${PORT}`);
 });
