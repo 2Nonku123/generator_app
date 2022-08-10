@@ -79,7 +79,7 @@ function hashID(value, saltKey) {
 }
 
 ////////////////////////////
-//image resize
+//image resize // https://appdividend.com/2022/03/03/node-express-image-upload-and-resize/
 const upload = multer({
   limits: {
     fileSize: 4 * 1024 * 1024,
@@ -2510,7 +2510,7 @@ app.put(
 ///
 
 
-//image upload
+//image upload reference: https://appdividend.com/2022/03/03/node-express-image-upload-and-resize/
 
 app.post(
   "/admin/category/:category_id/image",
@@ -2696,7 +2696,7 @@ function removeFile(file_path) {
 }
   }
 
-
+// https://appdividend.com/2022/03/03/node-express-image-upload-and-resize/
   function imageUpload(res, req, next) {}
 
   app.listen(PORT, function () {
