@@ -6,6 +6,14 @@ module.exports = function ProductAdminManager(pool) {
     return result.rows;
   }
 
+  async function getCategory(category_id) {
+    const result = await pool.query(
+      `select * from product_type WHERE id = $1`,
+      [category_id]
+    );
+    return result.rows.length > 0 ? result.rows[0] : null;
+  }
+
   async function getProducts(
     product_type_id,
     orderBy,
@@ -205,6 +213,24 @@ module.exports = function ProductAdminManager(pool) {
     return result.rowCount > 0 ? result.rows[0] : null;
   }
 
+  async function updateCategoryImage(product_type_id, image) {
+    const result = await pool.query(
+      `UPDATE product_type SET image = $1 WHERE product_type.id = $2;`,
+      [image, product_type_id]
+    );
+
+    return result.rowCount;
+  }
+
+  async function updateProductImage(product_id, image) {
+    const result = await pool.query(
+      `UPDATE product SET product_image = $1 WHERE product.id = $2;`,
+      [image, product_id]
+    );
+
+    return result.rowCount;
+  }
+
   return {
     getProductType,
     getProduct,
@@ -215,5 +241,8 @@ module.exports = function ProductAdminManager(pool) {
     removeProduct,
     productOrdered,
     updateCategory,
+    updateCategoryImage,
+    updateProductImage,
+    getCategory,
   };
 };

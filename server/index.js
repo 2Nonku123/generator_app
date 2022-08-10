@@ -6,8 +6,11 @@ const cors = require("cors");
 const pg = require("pg");
 const Hashids = require("hashids");
 const Joi = require("joi");
-
-
+const fs = require("fs");
+//image upload
+const Resize = require("./image-resize/Resize");
+const multer = require("multer");
+const path = require("path");
 
 
 // Customer Managers
@@ -18,6 +21,9 @@ const StoreManager = require("./manager/store-manager");
 const OrderAdminManager = require("./manager-admin/OrderAdminManager");
 const ProductAdminManager = require("./manager-admin/ProductAdminManager");
 const UserAdminManager = require("./manager-admin/UserAdminManager");
+//const ReportManager = require("./manager-admin/reportManager");
+
+
 
 const Pool = pg.Pool;
 require("dotenv").config();
@@ -60,6 +66,7 @@ const storeManager = StoreManager(pool);
 const orderAdminManager = OrderAdminManager(pool);
 const productAdminManager = ProductAdminManager(pool);
 const userAdminManager = UserAdminManager(pool);
+//const reportManager = ReportManager(pool);
 
 const PORT = process.env.PORT || 4017;
 
@@ -72,6 +79,12 @@ function hashID(value, saltKey) {
 }
 
 ////////////////////////////
+//image resize
+const upload = multer({
+  limits: {
+    fileSize: 4 * 1024 * 1024,
+  },
+});
 
 // New / Existing User Routes
 
@@ -2494,8 +2507,150 @@ app.put(
       });
   }
 );
-/////////////////////////////////////////////////////////
+///
 
+
+//image upload
+
+app.post(
+  "/admin/category/:category_id/image",
+  [checkAdminAuthorizationToken, upload.single("image")],
+  async function (req, res) {
+    const { category_id } = req.params;
+
+    let scheme = Joi.object({
+      category_id: Joi.number().required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+
+      return;
+    }
+
+    const imagePath = path.join(_dirname, "/public/images");
+    const oldPath = path.join(_dirname, "public");
+    const fileUpload = new Resize(imagePath);
+    if (!req.file) {
+      res.json({ status: "error", message: "Please provide an image" });
+      return;
+    }
+    const filename = await fileUpload.save(req.file.buffer);
+    let oldFile = "";
+    productAdminManager
+    .getCategory(category_id)
+    .then((result) => {
+      if(result == null) {
+        return Promise.reject();
+      }
+      oldFile = result.image;
+      return result;
+    })
+    .then((result) =>
+    productAdminManager.updateCategoryImage(
+      category_id,
+      `images/${filename}`
+    ))
+
+    .then((result) => {
+      if(result > 0) {
+        if(oldFile.trim() != "") {
+            removeFile(oldPath + `/${oldFile}`);
+          }
+          res.json({ status: "success", message: "Category image uploaded" });
+      }else {
+        removeFile(imagePath + `/${filename}`);
+        res.json({
+          status: "error",
+          message: "Could not upload category image",
+        });
+      }
+    })
+    .catch((error) => {
+      removeFile(imagePath + `/${filename}`);
+      res.json({
+        status: "error",
+        message: "Could not upload category image",
+      });
+    });
+  }
+);
+
+app.post(
+  "/admin/product/:product_id/image",
+  [checkAdminAuthorizationToken, upload.single("image")],
+  async function (req, res) {
+
+
+    const { product_id } = req.params;
+
+    let scheme = Joi.object({
+      product_id: Joi.number().required(),
+    });
+
+    let sResult = scheme.validate(req.params);
+
+    if (sResult.error !== undefined) {
+      res.json({
+        status: "error",
+        message: sResult.errror.details[0].message,
+      });
+
+      return;
+    }
+
+    const imagePath = path.join(_dirname, "/public/images");
+    const oldPath = path.join(_dirname, "public");
+    const fileUpload = new Resize(imagePath);
+    if (!req.file) {
+      res.json({ status: "error", message: "Please provide an image" });
+      return;
+    }
+    const filename = await fileUpload.save(req.file.buffer);
+    let oldFile = "";
+    productAdminManager
+    .getProduct(product_id)
+    .then((result) => {
+      if (reset == null) {
+        return Promise.reject();
+      }
+      oldFile = result.product_image;
+      return result;
+    })
+    .then((result) => 
+    productAdminManager.updateProductImage(product_id, `images/${filename}`)
+    )
+    .then((result) => {
+      if (result > 0) {
+        if (oldFile.trim() != "") {
+          removeFile(oldPath + `/${oldFile}`);
+        }
+        res.json({ status: "success", message: "Product image uploaded" });
+      } else {
+        removeFile(imagePath + `/${filename}`);
+        res.json({
+          status: "error",
+          message: "Could not upload product image",
+        });
+      }
+    })
+    .catch((error) => {
+      removeFile(imagePath + `/${filename}`);
+      res.json({
+        status: "error",
+        message: "Could not upload product image",
+        
+      });
+    });
+  }
+);
+
+////
 function checkAuthorizationToken(req, res, next) {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ");
@@ -2532,6 +2687,18 @@ function checkAdminAuthorizationToken(req, res, next) {
   });
 }
 
-app.listen(PORT, function () {
+function removeFile(file_path) {
+  try {
+    fs.unlinkSync(file_path);
+
+  }catch (err) {
+    //console.error(err);
+}
+  }
+
+
+  function imageUpload(res, req, next) {}
+
+  app.listen(PORT, function () {
   console.log(`App started on port ${PORT}`);
 });
