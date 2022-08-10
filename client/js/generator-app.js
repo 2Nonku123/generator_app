@@ -31,7 +31,10 @@ export default function GeneratorApp() {
     lastView: 0,
 
     currentSubView: 0,
-    serverUrl: "http://localhost:4017",
+    isAdmin: false,
+    userLogginInfo: { first_name: "", lastname: "", user_type: "", user_id: 0 },
+
+    serverUrl: "",
     user: {
       user_name: "",
       password: "",
@@ -40,6 +43,9 @@ export default function GeneratorApp() {
       email_address: "",
       contact_number: "",
     },
+
+    is_Loading: false,
+    page_loaded: true,
 
     accountToken: "",
     menuBarSearchText: "",
@@ -230,6 +236,7 @@ export default function GeneratorApp() {
           if (result.status === "success") {
             this.accountToken = result.token;
             this.saveToken();
+            this.getUserProfile();
             this.accountVisible = true;
             this.openHome();
           } else {
@@ -249,6 +256,7 @@ export default function GeneratorApp() {
             this.accountToken = result.token;
             this.accountVisible = true;
             this.saveToken();
+            this.getUserProfile();
             this.openHome();
           } else {
             this.handleMessage(result.message);
@@ -568,12 +576,28 @@ export default function GeneratorApp() {
       localStorage.removeItem("token");
       this.accountToken = "";
       this.accountVisible = false;
+      this.resetUser();
+      this.openHome();
     },
 
     checkUserToken() {
       this.accountToken = localStorage.getItem("token");
+
       if (this.accountToken != null) {
+        this.getUserProfile();
         this.accountVisible = true;
+      }
+    },
+
+    getUserProfile() {
+      try {
+        const getInfo = this.getTokenInfo();
+
+        if (getInfo != null && getInfo.user_type != null) {
+          this.isAdmin = getInfo.user_type == "admin";
+        }
+      } catch (e) {
+        this.accountVisible = false;
       }
     },
     ///////////////////////////////////////////////
@@ -667,6 +691,46 @@ export default function GeneratorApp() {
     handleMessage(message) {
       this.popupMessage = message;
       this.popupVisible = true;
+    },
+
+    getUserProfile() {
+      this.resetUser();
+      try {
+        const getInfo = this.getTokenInfo();
+
+        if (getInfo != null && getInfo.user_type != null) {
+          this.isAdmin = getInfo.user_type == "admin";
+        }
+        this.userLogginInfo = getInfo;
+      } catch (e) {
+        this.accountVisible = false;
+      }
+    },
+
+    getTokenInfo() {
+      const token = this.accountToken;
+      var base64Url = token.split(".")[1];
+      var base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      var jsonPayload = decodeURIComponent(
+        window
+          .atob(base64)
+          .split("")
+          .map(function (c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join("")
+      );
+
+      return JSON.parse(jsonPayload);
+    },
+
+    resetUser() {
+      this.userLogginInfo = {
+        first_name: "",
+        lastname: "",
+        user_type: "",
+        user_id: 0,
+      };
     },
 
     saveToken() {

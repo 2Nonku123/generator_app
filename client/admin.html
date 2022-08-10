@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
 
     <title>GenX Admin</title>
 </head>
@@ -18,7 +20,20 @@
 <body>
     <div class="wrapper" x-data="generatorApp">
 
-        <div>
+        <div class="w3-padding-64 w3-center w3-xxxlarge" x-show="!page_loaded">
+            <span>GenX Shop</span> <br />Loading
+
+            <div class="w3-padding">
+                <img style="height:250px;" src="img/1895404887loading-gears-animation-10-2.gif" />
+            </div>
+
+            <div class="w3-large">
+                If this pages takes too long, <a style="text-decoration: none" class="bold w3-large w3-text-indigo"
+                    href="javascript:void" onclick="document.location.reload()">click here to refresh</a>
+            </div>
+        </div>
+
+        <div x-show="page_loaded" style="display:none">
 
             <nav class="navbar navbar-expand-sm navbar-dark w3-indigo">
                 <div class="container-fluid">
@@ -27,12 +42,22 @@
                         data-bs-target="#generatorBar">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    <div class="collapse navbar-collapse" id="generatorBar">
+                    <div class="collapse navbar-collapse">
                         <ul class="navbar-nav me-auto">
 
                             <li class="nav-item" x-show="accountVisible">
                                 <a class="nav-link w3-large" href="javascript:void(0)" @click="openHome()"><i
                                         class="fa fa-home"></i> Home</a>
+                            </li>
+                            <li class="nav-item" x-show="accountVisible">
+                                <a class="nav-link w3-large" href="index.html"><i class="fa fa-user"></i> Customer
+                                    Home</a>
+                            </li>
+
+
+                            <li class="nav-item" x-show="accountVisible">
+                                <a class="nav-link w3-large" href="javascript:void(0)" @click="openUsers()"><i
+                                        class="fa fa-users"></i> Users</a>
                             </li>
 
                             <li class="nav-item" x-show="accountVisible">
@@ -43,11 +68,6 @@
                             <li class="nav-item" x-show="accountVisible">
                                 <a class="nav-link w3-large" href="javascript:void(0)" @click="openOrders()"><i
                                         class="fa fa-file"></i> Orders</a>
-                            </li>
-
-                            <li class="nav-item" x-show="accountVisible">
-                                <a class="nav-link w3-large" href="javascript:void(0)" @click="openUsers()"><i
-                                        class="fa fa-users"></i> Users</a>
                             </li>
 
                             <li class="nav-item" x-show="accountVisible">
@@ -62,7 +82,7 @@
 
                             <li class="nav-item" x-show="accountVisible">
                                 <a class="nav-link w3-large" href="javascript:void(0)" @click="signout()"><i
-                                        class="fa fa-arrow-down"></i> Logout</a>
+                                        class="fa fa-arrow-down"></i> Sign Out</a>
                             </li>
                         </ul>
 
@@ -76,7 +96,7 @@
             <div class="container py-5 h-100 w3-animate-bottom" x-show="currentView == VIEW_SIGNIN">
                 <div class="row d-flex justify-content-center align-items-center h-100">
                     <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                        <div class="card shadow-2-strong w3-round-large w3-border w3-border-indig" o>
+                        <div class="card shadow-2-strong w3-round-large w3-border w3-border-indigo">
                             <div class="card-body p-5 text-center">
 
                                 <h3 class="mb-5 w3-text-indigo"><i class="bi bi-lock"></i> Sign in</h3>
@@ -180,104 +200,174 @@
                 <div x-show="currentSubView == VIEW_ORDERS_LIST">
 
                     <h1 Class="">Orders</h1>
+                    <button class="w3-button w3-green" @click="openOrderSearch()"><i class="fa fa-search"></i> Search
+                        Order</button>
+                    <table class="w3-padding w3-table-all" x-show="orderData.length > 0">
 
-                    <div class="w3-padding">
+                        <tr class="w3-indigo">
+                            <th>Order Number</th>
+                            <th>Order By</th>
+                            <th>Order Date</th>
+                            <th>Order Status</th>
+                            <th>Total Amount:</th>
+                            <th>Total Items</th>
+                            <th>Action</th>
 
-                        <div class="w3-padding w3-border" x-show="orderData.length > 0">
+                        </tr>
+                        <tbody class="w3-padding w3-border">
                             <template x-for="order_detail in orderData">
 
 
-                                <div class="w3-padding w3-card w3-margin w3-hover-gray mb-4"
-                                    @click="openOrderItems(order_detail)">
+                                <tr class="">
+                                    <td x-text="'#'+order_detail.order_id"></td>
+                                    <td x-text="order_detail.first_name+' '+order_detail.lastname"></td>
+                                    <td x-text="order_detail.order_date"></td>
+                                    <td x-text="order_detail.order_status"></td>
+                                    <td>R <span x-text="order_detail.order_total"></span></td>
+                                    <td x-text="order_detail.order_items"></td>
 
-                                    <h3 class="w3-xlarge w3-text-dark-gray w3-text-indigo"
-                                        x-text="'Order Number: #'+order_detail.id">
-                                    </h3>
-                                    <div>
-                                        <div class="w3-row">
-                                            <div class="w3-half w3-padding">Order Date: <span
-                                                    x-text="order_detail.order_date"></span></div>
-                                            <div class="w3-half w3-padding">Order Status: <span
-                                                    x-text="order_detail.order_status"></span>
-                                            </div>
-                                        </div>
-                                        <div class="w3-row">
-                                            <div class="w3-half w3-padding">Total Amount: R <span
-                                                    x-text="order_detail.order_total"></span>
-                                            </div>
-                                            <div class="w3-half w3-padding">Total Items: <span
-                                                    x-text="order_detail.order_items"></span></div>
-                                        </div>
-                                    </div>
-                                </div>
+                                    <td>
+                                        <button class="w3-button w3-blue w3-round-large"
+                                            @click="openOrderItems(order_detail)"><i class="fa fa-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
 
 
                             </template>
 
-                        </div>
+                        </tbody>
 
                         <div class="w3-padding w3-border" x-show="orderData.length == 0">
                             <h1 class="w3-center w3-padding-64 w3-xxlarge w3-text-indigo"> No Orders Made</h1>
                         </div>
 
 
-                    </div>
+                    </table>
 
 
                 </div>
 
                 <div x-show="currentSubView == VIEW_ORDERS_ITEMS">
                     <h1 Class="">Ordered Items</h1>
+                    <button class="w3-green w3-button" @click="openOrders()"><i class="fa fa-arrow-left"></i>
+                        Back</button>
 
-                    <div class="w3-padding w3-border-bottom">
+                    <div class="w3-padding w3-border">
                         <h1 Class=" w3-large">Order Details</h1>
-                        <div class="w3-padding w3-margin w3-hover-gray mb-4">
+                        <div class="w3-padding w3-margin mb-4">
 
-                            <h3 class="w3-xlarge w3-text-dark-gray w3-text-indigo"
-                                x-text="'Order Number: #'+selectedOrder.id">
-                            </h3>
-                            <div>
-                                <div class="w3-row">
-                                    <div class="w3-half w3-padding">Order Date: <span
-                                            x-text="selectedOrder.order_date"></span></div>
-                                    <div class="w3-half w3-padding">Order Status: <span
-                                            x-text="selectedOrder.order_status"></span>
-                                    </div>
-                                </div>
-                                <div class="w3-row">
-                                    <div class="w3-half w3-padding">Total Amount: R <span
-                                            x-text="selectedOrder.order_total"></span>
-                                    </div>
-                                    <div class="w3-half w3-padding">Total Items: <span
-                                            x-text="selectedOrder.order_items"></span></div>
-                                </div>
-                            </div>
+
+                            <table class="w3-table-all w3-border w3-border-indigo">
+                                <thead>
+                                    <tr class="w3-indigo">
+                                        <th class="w3-large w3-padding-16" colspan="4"
+                                            x-text="'Order Number: #'+selectedOrder.order_id"></th>
+                                    </tr>
+                                </thead>
+
+                                <thead>
+                                    <tr>
+                                        <td class="w3-indigo">Order Date:</td>
+                                        <td x-text="selectedOrder.order_date"></td>
+                                        <td class="w3-indigo">Order Status:</td>
+                                        <td x-text="selectedOrder.order_status"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="w3-indigo">Total Amount: </td>
+                                        <td>R <span x-text="selectedOrder.order_total"></span></td>
+                                        <td class="w3-indigo">Total Items: </td>
+                                        <td x-text="selectedOrder.order_items"></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4">
+                                            <h4 class="w3-indigo w3-xlarge w3-bold w3-padding">Customer Details</h4>
+                                            <p class="w3-padding w3-text-gray w3-large"
+                                                x-text="selectedOrder.first_name+' '+selectedOrder.lastname"></p>
+                                        </td>
+                                    </tr>
+                                    <tr class="w3-white">
+                                        <td class="w3-white" colspan="4">
+                                            <h4 class="w3-indigo w3-xlarge w3-bold w3-padding">Delivery Information</h4>
+                                            <p class="w3-padding-16 w3-padding w3-text-gray w3-large"
+                                                x-text="selectedOrder.is_delivery?'Deliver to Customer':'Customer Collection'">
+                                            </p>
+                                            <p class=" w3-padding w3-text-gray" x-show="selectedOrder.is_delivery"
+                                                x-text="selectedOrder.delivery_address"></p>
+
+                                        </td>
+                                    </tr>
+
+                                    <tr class="w3-white">
+                                        <td class="w3-white" colspan="4" x-show="selectedOrder.order_status_id < 5">
+
+                                            <button class="btn w3-green w3-hover-gray"
+                                                x-show="selectedOrder.order_status_id == 2"
+                                                @click="setOrderstatus(6)"><i class="fa fa-check"></i>
+                                                Order
+                                                Collected</button>
+
+                                            <button class="btn w3-idigo w3-hover-gray"
+                                                x-show="selectedOrder.order_status_id == 3"
+                                                @click="setOrderstatus(4)"><i class="fa fa-arrow-right"></i>
+                                                Order Delivery: On
+                                                route</button>
+
+                                            <button class="btn w3-green w3-hover-gray"
+                                                x-show="selectedOrder.order_status_id == 4 || selectedOrder.order_status_id == 3"
+                                                @click="setOrderstatus(5)"><i class="fa fa-check"></i> Order
+                                                Delivered</button>
+
+
+                                            <button class="btn w3-red w3-hover-gray"
+                                                x-show="selectedOrder.order_status_id < 5" @click="setOrderstatus(7)"><i
+                                                    class="fa fa-times"></i>
+                                                Order
+                                                Cancelled</button>
+
+
+                                        </td>
+                                    </tr>
+
+
+                                </thead>
+
+                            </table>
+
+
                         </div>
                     </div>
 
                     <div class="w3-row w3-padding-16">
 
-                        <template x-for="order_item_value in orderItems">
-                            <div class="w3-padding w3-card w3-margin w3-center w3-hover-gray w3-quarter">
-                                <h3 class="w3-medium w3-text-dark-gray" x-text="order_item_value.product_name"></h3>
+                        <table class="w3-table-all">
 
-                                <div class="w3-row">
-                                    <div class="w3-margin">
-                                        <img :src="order_item_value.product_image" style="width:50%;max-width:250px" />
-                                    </div>
-
-                                    <div class="w3-w3-xlarge w3-text-indigo">R <span
-                                            x-text="order_item_value.product_price"></span> x
-                                        <span x-text="order_item_value.product_quantity"></span> items
-                                    </div>
-                                </div>
+                            <thead>
+                                <tr class="w3-indigo w3-bold">
+                                    <th></th>
+                                    <th>Product Name</th>
+                                    <th>Ordered Quantity</th>
+                                    <th>Price</th>
+                                    <th>Sub Total</th>
+                                </tr>
+                            </thead>
 
 
-                                <p class="w3-xlagr w3-text-indigo">Sub Total: R <span
-                                        x-text="order_item_value.sub_total"></span></p>
-                            </div>
-                        </template>
+                            <tbody>
+                                <template x-for="order_item_value in orderItems">
+                                    <tr class="">
 
+                                        <td><img :src="serverUrl+'/'+order_item_value.product_image"
+                                                style="height:100px;" /></td>
+                                        <td x-text="order_item_value.product_name"></td>
+                                        <td x-text="order_item_value.product_quantity"></td>
+                                        <td x-text="order_item_value.product_price"></td>
+                                        <td>R <span x-text="order_item_value.sub_total"></span></td>
+
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
                     </div>
 
 
@@ -287,10 +377,86 @@
 
                 </div>
 
+                <div x-show="currentSubView == VIEW_ORDERS_SEARCH">
+                    <h1 Class="">Search for Order</h1>
 
+                    <div class="w3-padding w3-padding-16 w3-border-bottom w3-border-indigo">
+
+                        <select class="w3-padding w3-border w3-border-teal" x-model="orderSearchType">
+                            <option value="id">Search By Order ID</option>
+                            <option value="name">Search by Name / Surname</option>
+                        </select>
+                        <input class="w3-padding w3-border w3-border-teal w3-round-medium" type="text"
+                            placeholder="Search" x-model="searchText">
+                        <button class="w3-button w3-blue w3-round-medium" type="button"
+                            @click="searchOrders()">Search</button>
+                        <button class="w3-green w3-button" @click="openOrders()"><i class="fa fa-arrow-left"></i>
+                            Back</button>
+                    </div>
+
+                    <div class="w3-padding w3-white">
+                        <H1 class="w3-text-indigo w3-large"><span x-text="orderSearchData.length"></span> Search Results
+                            Found </H1>
+
+
+                        <div class="w3-padding">
+
+
+                            <table class="w3-padding w3-table-all" x-show="orderSearchData.length > 0">
+
+                                <tr class="w3-indigo">
+                                    <th>Order Number</th>
+                                    <th>Order By</th>
+                                    <th>Order Date</th>
+                                    <th>Order Status</th>
+                                    <th>Total Amount:</th>
+                                    <th>Total Items</th>
+                                    <th>Action</th>
+
+                                </tr>
+                                <tbody class="w3-padding w3-border">
+                                    <template x-for="order_detail_search in orderSearchData">
+
+
+                                        <tr class="">
+
+                                            <td x-text="'#'+order_detail_search.order_id"></td>
+                                            <td
+                                                x-text="order_detail_search.first_name+' '+order_detail_search.lastname">
+                                            </td>
+                                            <td x-text="order_detail_search.order_date"></td>
+                                            <td x-text="order_detail_search.order_status"></td>
+                                            <td>R <span x-text="order_detail_search.order_total"></span></td>
+                                            <td x-text="order_detail_search.order_items"></td>
+
+                                            <td>
+                                                <button class="w3-button w3-blue w3-round-large"
+                                                    @click="openOrderItems(order_detail_search)"><i
+                                                        class="fa fa-pencil"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+
+
+                                    </template>
+
+                                </tbody>
+
+                                <div class="w3-padding w3-border" x-show="orderSearchData.length == 0">
+                                    <h1 class="w3-center w3-padding-64 w3-xxlarge w3-text-indigo"> No Orders Found</h1>
+                                </div>
+
+
+                            </table>
+
+
+
+                        </div>
+
+                    </div>
+                </div>
 
             </div>
-
 
             <div class="w3-padding" x-show="currentView == VIEW_HOME">
 
@@ -307,7 +473,7 @@
                             </div>
                         </div>
 
-                        <div class="w3-padding w3-quarter" @click="openProducts()">
+                        <div class="w3-padding w3-quarter" @click="openCategories()">
                             <div
                                 class="w3-padding-16 w3-green w3-center w3-round-large w3-hover-gray w3-button w3-block">
                                 <div class="w3-xxxlarge w3-text-white"><i class='fa fa-cubes'></i></div>
@@ -316,7 +482,7 @@
                             </div>
                         </div>
 
-                        <div class="w3-padding w3-quarter" @click="OpenOrders()">
+                        <div class="w3-padding w3-quarter" @click="openOrders()">
                             <div
                                 class="w3-padding-16 w3-brown w3-center w3-round-large w3-hover-gray w3-button w3-block">
                                 <div class="w3-xxxlarge w3-text-white"><i class='fa fa-file'></i></div>
@@ -347,6 +513,10 @@
 
                     <h1 Class="">Product Category</h1>
 
+                    <button class="w3-button w3-green" @click="openSearchProduct()"><i class="fa fa-search"></i> Search
+                        Product</button>
+                    <button class="w3-green w3-button" @click="openAddProduct()"><i class="fa fa-plus"></i>
+                        New Product</button>
                     <div class="w3-padding">
 
                         <div class="w3-row">
@@ -355,7 +525,8 @@
                                 <div class="w3-quarter w3-padding">
                                     <div class="w3-row w3-border w3-padding w3-margin-bottom">
                                         <div class="w3-center">
-                                            <img :src="category_item.image" style="width:100px;height:100px" />
+                                            <img :src="serverUrl+'/'+category_item.image"
+                                                style="width:100px;height:100px" />
                                         </div>
 
                                         <Div class="w3-row w3-center">
@@ -364,11 +535,11 @@
                                             </div>
                                             <div class="">
                                                 <button class="w3-button w3-blue w3-round-large"
-                                                    @click="openCategoryEdit(category_item.id)"><i
+                                                    @click="openCategoryEdit(category_item)"><i
                                                         class="fa fa-pencil"></i>
                                                     Edit</button>
                                                 <button class="w3-button w3-green w3-round-large"
-                                                    @click="openProducts(category_item.id)"><i
+                                                    @click="openProducts(category_item)"><i
                                                         class="fa fa-arrow-right"></i>
                                                     View Products</button>
                                             </div>
@@ -390,59 +561,578 @@
 
                 </div>
 
+                <div x-show="currentSubView == VIEW_PRODUCT_CATEGORY_EDIT">
+
+                    <div class="w3-padding w3-padding-16 w3-border w3-border-indigo">
+
+                        <h2 class="w3-text-indigo"><i class="fa fa-cubes"></i> Edit Category</h2>
+
+                        <div class="w3-padding w3-row">
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Category Name :</span><input
+                                    class="w3-input w3-border data-textbox" x-model="currentCategory.name"
+                                    placeholder="Category Name" title="Category Name" maxlength="50" value="" />
+                            </div>
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Upload Image :</span>
+                                <input class="w3-input w3-border w3-border-indigo" x-model="uploadValue" type="file"
+                                    x-on:change="uploadCategory($event)" accept="image/*" />
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="w3-padding">
+                            <button class="w3-button w3-indigo" @click="openCategories()"><i
+                                    class="fa fa-arrow-left"></i> Back</button>
+
+                            <button class="w3-button w3-green" @click="editCategory()"><i class="fa fa-save"></i>
+                                Update Category</button>
+                        </div>
+
+                    </div>
+                </div>
+
                 <div x-show="currentSubView == VIEW_PRODUCT_ITEMS">
                     <h1 Class="">Product Items</h1>
 
                     <div class="w3-padding-16 w3-padding">
                         <button class="w3-green w3-button" @click="openCategories()"><i class="fa fa-arrow-left"></i>
                             Back</button>
+                        <button class="w3-green w3-button" @click="openAddProduct()"><i class="fa fa-plus"></i>
+                            New Product</button>
                     </div>
                     <div class="w3-row w3-padding-16 w3-border">
 
-                        <template x-for="category_product_item in categoryProductsData">
 
+                        <table class="w3-table-all">
+                            <thead>
+                                <tr class="w3-indigo">
+                                    <th></th>
+                                    <th>Product Name</th>
+                                    <th>Price</th>
+                                    <th>Current Quantity</th>
+                                    <th>Available</th>
+                                    <th>Is Rental</th>
+                                    <th>Category</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
 
-                            <div class="w3-quarter w3-padding">
-                                <div class="w3-row w3-border w3-padding w3-margin-bottom">
-                                    <div class="w3-center">
-                                        <img :src="category_product_item.product_image"
-                                            style="width:100px;height:100px" />
-                                    </div>
+                            <tbody>
 
-                                    <Div class="w3-row w3-center">
-                                        <div class="">
-                                            <h3 class="w3-large w3-text-dark-gray"
-                                                x-text="category_product_item.product_name"></h3>
-                                        </div>
-                                        <div class="">
-                                            <button class="w3-button w3-blue w3-round-large"
-                                                @click="editProduct(category_product_item.id)"><i
+                                <template x-for="category_product_item in categoryProductsData">
+
+                                    <tr>
+                                        <td class="w3-center"> <img
+                                                :src="serverUrl+'/'+category_product_item.product_image"
+                                                style="height:100px" /></td>
+                                        <td x-text="category_product_item.product_name"></td>
+                                        <td>R <span x-text="category_product_item.price"></span></td>
+                                        <td x-text="category_product_item.quantity"></td>
+                                        <td x-text="category_product_item.available?'Yes':'No'"></td>
+                                        <td x-text="category_product_item.is_rentalble?'Yes':'No'"></td>
+                                        <td x-text="category_product_item.product_type"></td>
+
+                                        <td> <button class="w3-button w3-blue w3-round-large"
+                                                @click="openEditProduct(category_product_item)"><i
                                                     class="fa fa-pencil"></i>
                                                 Edit</button>
                                             <button class="w3-button w3-red w3-round-large"
                                                 @click="removeProduct(category_product_item.id)"><i
                                                     class="fa fa-arrow-right"></i>
                                                 Remove</button>
-                                        </div>
-                                    </Div>
+
+                                        </td>
+                                    </tr>
+
+                                </template>
+                            </tbody>
+
+                        </table>
 
 
-                                </div>
+
+                    </div>
+                </div>
+
+                <div x-show="currentSubView == VIEW_PRODUCT_SEARCH">
+                    <h1 Class="">Search for product</h1>
+
+                    <div class="w3-padding w3-padding-16 w3-border-bottom w3-border-indigo">
+                        <input class="w3-padding w3-border w3-border-teal w3-round-medium" type="text"
+                            placeholder="Search" x-model="searchText">
+                        <button class="w3-button w3-blue w3-round-medium" type="button"
+                            @click="loadProductSearch()">Search</button>
+                        <button class="w3-green w3-button" @click="openCategories()"><i class="fa fa-arrow-left"></i>
+                            Back</button>
+                    </div>
+
+                    <div class="w3-padding w3-white">
+                        <H1 class="w3-text-indigo w3-large"><span x-text="searchData.length"></span> Search Results
+                            Found </H1>
+
+
+
+                        <div class="w3-row w3-padding-16 w3-border">
+
+                            <table class="w3-table-all">
+                                <thead>
+                                    <tr class="w3-indigo">
+                                        <th></th>
+                                        <th>Product Name</th>
+                                        <th>Price</th>
+                                        <th>Current Quantity</th>
+                                        <th>Available</th>
+                                        <th>Is Rental</th>
+                                        <th>Category</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    <template x-for="search_item in searchData">
+
+                                        <tr>
+                                            <td class="w3-center"> <img :src="serverUrl+'/'+search_item.product_image"
+                                                    style="height:100px" /></td>
+                                            <td x-text="search_item.product_name"></td>
+                                            <td>R <span x-text="search_item.price"></span></td>
+                                            <td x-text="search_item.quantity"></td>
+                                            <td x-text="search_item.available?'Yes':'No'"></td>
+                                            <td x-text="search_item.is_rentalble?'Yes':'No'"></td>
+                                            <td x-text="search_item.product_type"></td>
+
+                                            <td> <button class="w3-button w3-blue w3-round-large"
+                                                    @click="openEditProduct(search_item)"><i class="fa fa-pencil"></i>
+                                                    Edit</button>
+                                                <button class="w3-button w3-red w3-round-large"
+                                                    @click="removeProduct(search_item.id)"><i
+                                                        class="fa fa-arrow-right"></i>
+                                                    Remove</button>
+
+                                            </td>
+                                        </tr>
+
+                                    </template>
+                                </tbody>
+
+                            </table>
+
+
+                        </div>
+                    </div>
+                </div>
+
+                <div x-show="currentSubView == VIEW_PRODUCT_ADD || currentSubView == VIEW_PRODUCT_EDIT">
+                    <div class="w3-padding w3-padding-16 w3-border w3-border-indigo">
+                        <h2 x-show="currentSubView == VIEW_PRODUCT_ADD" class="w3-text-indigo"><i
+                                class="fa fa-cubes"></i> Add Product</h2>
+                        <h2 x-show="currentSubView == VIEW_PRODUCT_EDIT" class="w3-text-indigo"><i
+                                class="fa fa-cubes"></i> Edit Product</h2>
+
+                        <div class="w3-padding w3-row">
+
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Product Name :</span><input
+                                    class="w3-input w3-border data-textbox" name="product_name"
+                                    x-model="selectedProduct.product_name" placeholder="Product Name"
+                                    title="Product Name" maxlength="50" value="" />
                             </div>
 
-                        </template>
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Description :</span><textarea
+                                    class="w3-input w3-border" name="description" x-model="selectedProduct.description"
+                                    placeholder="Description" title="Description" maxlength="350"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="w3-padding w3-row">
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Price :</span><input
+                                    class="w3-input w3-border data-textbox" name="price" x-model="selectedProduct.price"
+                                    placeholder="Price" title="Price" value="" type="number" />
+                            </div>
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Quantity :</span><input
+                                    class="w3-input w3-border data-textbox" name="quantity"
+                                    x-model="selectedProduct.quantity" placeholder="Quantity" title="Quantity" value=""
+                                    type="number" />
+                            </div>
+                        </div>
+
+                        <div class="w3-padding w3-row">
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Available :</span><select
+                                    class="w3-input w3-border data-textbox" name='available'
+                                    x-model='selectedProduct.available' title='Available'>
+                                    <option value='true'>Yes</option>
+                                    <option value='false'>No</option>
+                                </select>
+                            </div>
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Is Rentalble :</span><select
+                                    class="w3-input w3-border data-textbox" name='is_rentalble'
+                                    x-model='selectedProduct.is_rentalble' title='Is Rentalble'>
+                                    <option value='true'>Yes</option>
+                                    <option value='false'>No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="w3-padding w3-row">
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Rental Duration Type :</span>
+                                <select class="w3-input w3-border data-textbox" name="rental_duration_type"
+                                    x-model="selectedProduct.rental_duration_type" placeholder="Rental Duration Type"
+                                    title="Rental Duration Type">
+                                    <option value="0">None</option>
+                                    <option value="1">Minutes</option>
+                                    <option value="2">Hours</option>
+                                    <option value="3">Days</option>
+                                    <option value="4">Months</option>
+                                    <option value="5">Years</option>
+                                </select>
+
+
+
+                            </div>
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Rental Duration :</span><input
+                                    class="w3-input w3-border data-textbox" name="rental_duration"
+                                    x-model="selectedProduct.rental_duration" placeholder="Rental Duration"
+                                    title="Rental Duration" value="" type="number" />
+                            </div>
+                        </div>
+
+                        <div class="w3-padding w3-row">
+
+                            <div class="w3-padding w3-half">
+                                <span class="label-check w3-border-red">Product Type :</span>
+
+                                <select class='w3-input w3-border data-textbox'
+                                    x-model='selectedProduct.product_type_id' name='product_type_id'>
+                                    <template x-for="category_item_select in categoryData">
+                                        <option :value="category_item_select.id" x-text="category_item_select.name">
+                                        </option>
+                                    </template>
+                                </select>
+                            </div>
+
+                            <div class="w3-padding w3-half" x-show="currentSubView == VIEW_PRODUCT_EDIT">
+                                <span class="label-check w3-border-red">Upload Image :</span>
+                                <input class="w3-input w3-border w3-border-indigo" x-model="uploadValue" type="file"
+                                    x-on:change="uploadProduct($event)" accept="image/*" />
+
+                            </div>
+                        </div>
+
+                        <div class="w3-padding">
+                            <button class="w3-button w3-indigo" @click="openCategories()"><i
+                                    class="fa fa-arrow-left"></i> Back</button>
+                            <button x-show="currentSubView == VIEW_PRODUCT_ADD" class="w3-button w3-green"
+                                @click="addProduct()"><i class="fa fa-plus"></i>
+                                Add Product</button>
+                            <button x-show="currentSubView == VIEW_PRODUCT_EDIT" class="w3-button w3-green"
+                                @click="editProduct()"><i class="fa fa-save"></i>
+                                Update Product</button>
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+
+            </div>
+
+            <div class="w3-padding" x-show="currentView == VIEW_USER">
+
+                <div x-show="currentSubView == VIEW_USER_ALL">
+
+                    <h1 Class="">Users</h1>
+
+                    <button class="w3-button w3-green" @click="openUserSearch()"><i class="fa fa-search"></i> Search
+                        Users</button>
+                    <button class="w3-green w3-button" @click="openNewUser()"><i class="fa fa-plus"></i>
+                        New User</button>
+
+                    <div class="w3-padding">
+
+
+                        <table class="w3-table-all">
+                            <thead>
+                                <tr>
+                                    <th>User #</th>
+                                    <th>First Name</th>
+                                    <th>Lastname</th>
+                                    <th>User Name</th>
+                                    <th>Email Address</th>
+                                    <th>Contact Number</th>
+                                    <th>Operation</th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="w3-row">
+                                <template x-for="user_entry in userData">
+                                    <tr>
+                                        <td x-text="user_entry.id"></td>
+                                        <td x-text="user_entry.first_name"></td>
+                                        <td x-text="user_entry.lastname"></td>
+                                        <td x-text="user_entry.user_name"></td>
+                                        <td x-text="user_entry.email_address"></td>
+                                        <td x-text="user_entry.contact_number"></td>
+                                        <td>
+
+                                            <button class="w3-button w3-blue w3-round-large"
+                                                @click="openEditUser(user_entry)"><i class="fa fa-pencil"></i></button>
+                                            <button class="w3-button w3-red w3-round-large"
+                                                @click="removeUser(user_entry.id)"><i class="fa fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+
+
+                                </template>
+
+                            </tbody>
+
+                        </table>
+
+
+
+                    </div>
+
+                </div>
+
+                <div x-show="currentSubView == VIEW_USER_SEARCH">
+                    <h1 Class="">Search for User</h1>
+
+                    <div class="w3-padding w3-padding-16 w3-border-bottom w3-border-indigo">
+                        <input class="w3-padding w3-border w3-border-teal w3-round-medium" type="text"
+                            placeholder="Search" x-model="searchText">
+                        <button class="w3-button w3-blue w3-round-medium" type="button"
+                            @click="loadSearchUsers()">Search</button>
+                        <button class="w3-green w3-button" @click="openUsers()"><i class="fa fa-arrow-left"></i>
+                            Back</button>
+                    </div>
+
+                    <div class="w3-padding w3-white">
+                        <H1 class="w3-text-indigo w3-large"><span x-text="userSearchData.length"></span> Search
+                            Results
+                            Found </H1>
+
+
+                        <div class="w3-padding">
+
+
+                            <table class="w3-table-all">
+                                <thead>
+                                    <tr>
+                                        <th>User #</th>
+                                        <th>First Name</th>
+                                        <th>Lastname</th>
+                                        <th>User Name</th>
+                                        <th>Email Address</th>
+                                        <th>Contact Number</th>
+                                        <th>Operation</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="w3-row">
+                                    <template x-for="user_entry in userSearchData">
+                                        <tr>
+                                            <td x-text="user_entry.id"></td>
+                                            <td x-text="user_entry.first_name"></td>
+                                            <td x-text="user_entry.lastname"></td>
+                                            <td x-text="user_entry.user_name"></td>
+                                            <td x-text="user_entry.email_address"></td>
+                                            <td x-text="user_entry.contact_number"></td>
+                                            <td>
+
+                                                <button class="w3-button w3-blue w3-round-large"
+                                                    @click="openEditUser(user_entry)"><i
+                                                        class="fa fa-pencil"></i></button>
+                                                <button class="w3-button w3-red w3-round-large"
+                                                    @click="removeUser(user_entry.id)"><i
+                                                        class="fa fa-trash"></i></button>
+                                            </td>
+                                        </tr>
+
+
+                                    </template>
+
+                                </tbody>
+
+                            </table>
+
+
+
+                        </div>
+
+                    </div>
+                </div>
+
+                <div x-show="currentSubView == VIEW_USER_NEW">
+                    <h1 Class="" x-show="currentSubView == VIEW_USER_NEW"><i class="fa fa-user-plus"></i> New User</h1>
+
+                    <div class="w3-padding w3-padding-16 w3-border-bottom w3-border-indigo">
+                        <button class="w3-green w3-button" @click="openUsers()"><i class="fa fa-arrow-left"></i>
+                            Back</button>
+                    </div>
+
+                    <div class="w3-padding w3-white">
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label">First Name</label>
+                                <input class="form-control form-control-lg" x-model="userAdd.first_name" />
+                            </div>
+
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class=" form-label">Lastname</label>
+                                <input class="form-control form-control-lg" x-model="userAdd.lastname" />
+                            </div>
+
+                        </div>
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class=" form-label">Contact Number</label>
+                                <input class="form-control form-control-lg" x-model="userAdd.contact_number" />
+                            </div>
+
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class=" form-label">Email Address</label>
+                                <input type="email" class="form-control form-control-lg"
+                                    x-model="userAdd.email_address" />
+                            </div>
+                        </div>
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label" for="typeEmailX-2">User Name</label>
+                                <input class="form-control form-control-lg" x-model="userAdd.user_name" />
+                            </div>
+
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label" for="typePasswordX-2">Password</label>
+                                <input type="password" class="form-control form-control-lg"
+                                    x-model="userAdd.password" />
+                            </div>
+                        </div>
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label" for="typeEmailX-2">User Type</label>
+                                <select class="form-control form-control-lg" x-model="userAdd.user_type_id">
+                                    <option value="1">Customer</option>
+                                    <option value="2">Admin</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <button class="btn btn-primary btn-lm btn-block" type="submit" @click="addUser()"><i
+                                class="bi bi-key"></i> Create Account</button>
+
+                    </div>
+                </div>
+
+                <div x-show="currentSubView == VIEW_USER_EDIT">
+                    <h1 Class=""><i class="fa fa-user-edit"></i> Edit User</h1>
+
+                    <div class="w3-padding w3-padding-16 w3-border-bottom w3-border-indigo">
+                        <button class="w3-green w3-button" @click="openUsers()"><i class="fa fa-arrow-left"></i>
+                            Back</button>
+                    </div>
+
+                    <div class="w3-padding w3-white">
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label">First Name</label>
+                                <input class="form-control form-control-lg" x-model="userEdit.first_name" />
+                            </div>
+
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class=" form-label">Lastname</label>
+                                <input class="form-control form-control-lg" x-model="userEdit.lastname" />
+                            </div>
+
+                        </div>
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class=" form-label">Contact Number</label>
+                                <input class="form-control form-control-lg" x-model="userEdit.contact_number" />
+                            </div>
+
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class=" form-label">Email Address</label>
+                                <input type="email" class="form-control form-control-lg"
+                                    x-model="userEdit.email_address" />
+                            </div>
+                        </div>
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label" for="typeEmailX-2">User Name</label>
+                                <input class="form-control form-control-lg" x-model="userEdit.user_name" />
+                            </div>
+
+                        </div>
+
+
+                        <div class="w3-row">
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label" for="typeEmailX-2">User Type</label>
+                                <select class="form-control form-control-lg" x-model="userEdit.user_type_id">
+                                    <option value="1">Customer</option>
+                                    <option value="2">Admin</option>
+                                </select>
+                            </div>
+
+                            <div class="form-outline mb-4 w3-half w3-padding">
+                                <label class="form-label" for="typePasswordX-2">User Locked</label>
+                                <select class="form-control form-control-lg" x-model="userEdit.locked">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary btn-lm btn-block" type="submit" @click="editUser()"><i
+                                class="bi bi-key"></i> Update Account</button>
+
+                        <button class="btn w3-red btn-lm btn-block" type="submit" @click="resetUserPassword()"><i
+                                class="bi bi-key"></i> Reset Password</button>
+
+
 
                     </div>
                 </div>
 
             </div>
-            <div class="popup" x-show="popupVisible">
+
+            <div class="popup" x-show="popupVisible" style="display:none">
                 <div id="overlay" @click="popupVisible=false">
                     <div class="popup-text" x-text="popupMessage"></div>
                 </div>
             </div>
-
         </div>
+
     </div>
     <script type="module" src="./js/main-admin.js"></script>
 </body>
