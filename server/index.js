@@ -21,7 +21,7 @@ const StoreManager = require("./manager/store-manager");
 const OrderAdminManager = require("./manager-admin/OrderAdminManager");
 const ProductAdminManager = require("./manager-admin/ProductAdminManager");
 const UserAdminManager = require("./manager-admin/UserAdminManager");
-//const ReportManager = require("./manager-admin/reportManager");
+const ReportManager = require("./manager-admin/reportManager");
 
 
 
@@ -66,7 +66,7 @@ const storeManager = StoreManager(pool);
 const orderAdminManager = OrderAdminManager(pool);
 const productAdminManager = ProductAdminManager(pool);
 const userAdminManager = UserAdminManager(pool);
-//const reportManager = ReportManager(pool);
+const reportManager = ReportManager(pool);
 
 const PORT = process.env.PORT || 4017;
 
