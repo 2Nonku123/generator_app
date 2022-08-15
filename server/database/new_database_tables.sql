@@ -28,9 +28,11 @@ CREATE TABLE store_user (
 CREATE TABLE user_address (
   id serial  NOT NULL PRIMARY KEY,
   housenumber  INT NOT NULL,
-  street  text NOT NULL,
-  province  text NOT NULL,
-  postal_code text NOT NULL,
+  street  text NOT NULL default '',
+  suburb text NOT NULL default '',
+  city text NOT NULL default '',
+  province  text NOT NULL default '',
+  postal_code CHAR(4) NOT NULL default '',
   user_id INT NOT NULL,
   
   FOREIGN KEY (user_id) REFERENCES store_user (id) 

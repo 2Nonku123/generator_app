@@ -96,14 +96,16 @@ module.exports = function UserManager(pool) {
   async function addAddress(
     housenumber,
     street,
+    suburb,
+    city,
     province,
     postal_code,
     user_id
   ) {
     const result = await pool.query(
-      `INSERT INTO user_address(housenumber,street,province,postal_code,user_id) 
-        VALUES($1,$2,$3,$4,$5);`,
-      [housenumber, street, province, postal_code, user_id]
+      `INSERT INTO user_address(housenumber, street, suburb, city, province, postal_code, user_id) 
+        VALUES($1,$2,$3,$4,$5,$6,$7);`,
+      [housenumber, street, suburb, city, province, postal_code, user_id]
     );
 
     return result.rowCount;
@@ -112,13 +114,30 @@ module.exports = function UserManager(pool) {
   async function updateAddress(
     housenumber,
     street,
+    suburb,
+    city,
     province,
     postal_code,
     user_id
   ) {
     const result = await pool.query(
-      `UPDATE user_address SET housenumber = $1, street = $2, province = $3, postal_code = $4 WHERE id = $5`,
-      [housenumber, street, province, postal_code, user_id]
+      `UPDATE user_address SET housenumber = $1,
+       street = $2,
+       suburb = $3,
+       city = $4,
+       province = $5,
+       postal_code = $6
+       WHERE id = $7 and user_id = $8`,
+      [
+        housenumber, 
+        street, 
+        suburb,
+        city,
+        province, 
+        postal_code,
+        address_id, 
+        user_id
+      ]
     );
 
     return result.rowCount;
@@ -135,7 +154,7 @@ module.exports = function UserManager(pool) {
 
   async function getAddressAll(user_id) {
     const result = await pool.query(
-      `SELECT id,housenumber,street,province,postal_code FROM user_address WHERE user_id = $1`,
+      `SELECT id, housenumber, street, suburb, city, province, postal_code FROM user_address WHERE user_id = $1`,
       [user_id]
     );
 
@@ -144,7 +163,7 @@ module.exports = function UserManager(pool) {
 
   async function getAddress(address_id, user_id) {
     const result = await pool.query(
-      `SELECT id,housenumber,street,province,postal_code FROM user_address WHERE id= $1 AND user_id = $2`,
+      `SELECT id, housenumber, street, suburb, city, province, postal_code FROM user_address WHERE id= $1 AND user_id = $2 LIMIT 1`,
       [address_id, user_id]
     );
 

@@ -407,11 +407,14 @@ app.post(
   "/profile/address",
   checkAuthorizationToken,
   async function (req, res) {
-    const { housenumber, street, province, postal_code } = req.body;
+    const { housenumber, street, province, postal_code, suburb, city } = 
+    req.body;
 
     let scheme = Joi.object({
       housenumber: Joi.number().min(0).max(99999).required(),
       street: Joi.string().min(3).max(200).required(),
+      suburb: Joi.string().min(3).max(200).required(),
+      city: Joi.string().min(3).max(200).required(),
       province: Joi.string().min(5).max(50).required(),
       postal_code: Joi.string().min(4).max(4).required(),
     });
@@ -428,7 +431,17 @@ app.post(
     }
 
     userManager
-      .addAddress(housenumber, street, province, postal_code, req.user.user_id)
+      
+      
+      .addAddress(
+        housenumber,
+        street,
+        suburb,
+        city,
+        province,
+        postal_code,
+        req.user.user_id
+      )
       .then((updateStatus) =>
         res.json({
           status: updateStatus > 0 ? "success" : "error",
@@ -445,12 +458,22 @@ app.post(
 );
 
 app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
-  const { housenumber, street, province, postal_code, address_id } = req.body;
+  const { 
+    housenumber,
+    street,
+    province, 
+    postal_code,
+    suburb,
+    city, 
+    address_id,
+   } = req.body;
 
   let scheme = Joi.object({
     address_id: Joi.number().required(),
     housenumber: Joi.number().min(0).max(99999).required(),
     street: Joi.string().min(3).max(200).required(),
+    suburb: Joi.string().min(3).max(200).required(),
+    city: Joi.string().min(3).max(200).required(),
     province: Joi.string().min(5).max(50).required(),
     postal_code: Joi.string().min(4).max(4).required(),
   });
@@ -470,6 +493,8 @@ app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
     .updateAddress(
       housenumber,
       street,
+      suburb,
+      city,
       province,
       postal_code,
       address_id,
@@ -1582,7 +1607,7 @@ app.put("/admin/user/", checkAdminAuthorizationToken, async (req, res) => {
   if (sResult.error !== undefined) {
     res.json({ status: "error", message: sResult.error.details[0].message });
     return;
-  } else if (iObject.id == req.user.user_id) {
+  } else if (req.body.id == req.user.user_id) {
     res.json({ status: "error", message: "Cannot edit your own Account" });
     return;
   }
