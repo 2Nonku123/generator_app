@@ -38,7 +38,6 @@ CREATE TABLE user_address (
   FOREIGN KEY (user_id) REFERENCES store_user (id) 
   ON DELETE CASCADE 
   ON UPDATE CASCADE
-  
 );
 
 CREATE TABLE order_status (

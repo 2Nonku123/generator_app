@@ -4,22 +4,34 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
   <link rel="stylesheet" href="./css/style.css">
-  <link rel="stylesheet" href="./css/productCard.css">
-  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
   <title>Generator store</title>
 </head>
 
 <body>
   <div class="wrapper" x-data="generatorApp">
 
-    <div>
+    <div class="w3-padding-64 w3-center w3-xxxlarge" x-show="!page_loaded">
+      <span>GenX Shop</span> <br />Loading
+
+      <div class="w3-padding">
+        <img style="height:250px;" src="img/1895404887loading-gears-animation-10-2.gif" />
+      </div>
+
+      <div class="w3-large">
+        If this pages takes too long, <a style="text-decoration: none" class="bold w3-large w3-text-indigo"
+          href="javascript:void" onclick="document.location.reload()">click here to refresh</a>
+      </div>
+    </div>
+
+    <div x-show="page_loaded" style="display:none">
 
       <nav class="navbar navbar-expand-sm navbar-dark w3-indigo">
         <div class="container-fluid">
@@ -32,6 +44,10 @@
 
               <li class="nav-item">
                 <a class="nav-link w3-large" href="javascript:void(0)" @click="openHome()">Home</a>
+              </li>
+
+              <li class="nav-item" x-show="accountVisible && isAdmin">
+                <a class="nav-link w3-large" href="admin.html">Admin</a>
               </li>
 
               <li class="nav-item">
@@ -74,6 +90,7 @@
       </nav>
       <div x-show="accountVisible" class=" w3-padding w3-large">
         <a href="#" class="w3-text-indigo w3-button w3-white w3-border" @click="openProfile()">Profile</a>
+        <a href="#" class="w3-text-indigo w3-button w3-white w3-border" @click="openAddress()">Manage Address</a>
         <a href="#" class="w3-text-indigo w3-button w3-white w3-border" @click="openOrders()">Orders</a>
       </div>
 
@@ -148,10 +165,7 @@
                     class="bi bi-key"></i> Sign
                   Up</button>
 
-                <hr class="my-4">
-                <div><span>Already have an account? </span> <a class="w3-text-indigo" href="javascript:void()"
-                    @click="openSignIn()">Sign In</a>
-                </div>
+
 
               </div>
             </div>
@@ -220,7 +234,6 @@
                 <input type="password" class="form-control form-control-lg w3-text-dark-gray"
                   x-model="profileData.confirmPassword" />
               </div>
-
             </div>
             <button class="w3-button w3-green" @click="updateProfilePassword()">Update Password</button>
           </div>
@@ -305,7 +318,7 @@
 
                 <div class="w3-row">
                   <div class="w3-margin">
-                    <img :src="order_item_value.product_image" style="width:50%;max-width:250px" />
+                    <img :src="serverUrl+'/'+order_item_value.product_image" style="width:50%;max-width:250px" />
                   </div>
 
                   <div class="w3-w3-xlarge w3-text-indigo">R <span x-text="order_item_value.product_price"></span> x
@@ -345,7 +358,7 @@
 
                 <div class="w3-row">
                   <div class="w3-margin">
-                    <img :src="cart_item.product_image" style="width:50%;max-width:150px" />
+                    <img :src="serverUrl+'/'+cart_item.product_image" style="width:50%;max-width:150px" />
                   </div>
 
                   <div class="w3-w3-xlarge w3-text-indigo">R <span x-text="cart_item.product_price"></span> x
@@ -400,9 +413,15 @@
 
         </div>
 
+
+
+
         <div class="w3-padding w3-border" x-show="cartData.length == 0">
-          <h1 class="w3-center w3-padding-64 w3-xxlarge w3-text-indigo"> Cart is Empty</h1>
+          <h1 class="w3-center w3-padding-64 w3-xxlarge w3-text-indigo"> No items in cart</h1>
         </div>
+
+
+
       </div>
 
       <div x-show="currentView == VIEW_CHECKOUT && cartData.length > 0">
@@ -490,7 +509,7 @@
                 <h3 class="w3-medium w3-text-dark-gray" x-text="top_item.product_name"></h3>
 
                 <div class="w3-margin">
-                  <img :src="top_item.product_image" style="width:100px;height:100px" />
+                  <img :src="serverUrl+'/'+top_item.product_image" style="width:100px;height:100px" />
                 </div>
 
                 <p class="w3-small w3-text-indigo">R <span x-text="top_item.price"></span> </p>
@@ -521,8 +540,9 @@
                   style="display:inline-block;float:left;" @click="openProducts(category_item.id)">
 
                   <div class="w3-margin">
-                    <img :src="category_item.image" style="float:left;width:100px;height:100px" />
+                    <img :src="serverUrl+'/'+category_item.image" style="float:left;width:100px;height:100px" />
                   </div>
+
 
                   <h3 class="w3-medium w3-text-dark-gray" x-text="category_item.name"></h3>
                 </div>
@@ -530,6 +550,8 @@
               </template>
 
             </div>
+
+
 
           </div>
 
@@ -547,7 +569,7 @@
                 <h3 class="w3-medium w3-text-dark-gray" x-text="category_product_item.product_name"></h3>
 
                 <div class="w3-margin">
-                  <img :src="category_product_item.product_image" style="width:100px;height:100px" />
+                  <img :src="serverUrl+'/'+category_product_item.product_image" style="width:100px;height:100px" />
                 </div>
 
                 <p class="w3-small w3-text-indigo">R <span x-text="category_product_item.price"></span> </p>
@@ -576,7 +598,7 @@
                 <h3 class="w3-medium w3-text-dark-gray" x-text="search_item.product_name"></h3>
 
                 <div class="w3-margin">
-                  <img :src="search_item.product_image" style="width:100px;height:100px" />
+                  <img :src="serverUrl+'/'+search_item.product_image" style="width:100px;height:100px" />
                 </div>
 
                 <p class="w3-small w3-text-indigo">R <span x-text="search_item.price"></span> </p>
@@ -593,65 +615,39 @@
 
       <div class="w3-padding" x-show="currentView == VIEW_PRODUCT_DESCRIPTION">
 
-        <div class="w3-padding w3-green">
-         
+        <div class="w3-padding w3-white">
+          <H1 class="w3-text-indigo w3-large">Current Product -<span x-text="selectedProduct.product_name"></span>
+          </H1>
 
           <div class="w3-row w3-padding w3-border">
 
+
             <div class="w3-half w3-padding">
-             
+              <h2 class="w3-xlarge w3-text-indigo" x-text="selectedProduct.product_name"></h2>
 
-<div id="container">	
-	
-	<div class="product-details">
-		
-	<h1 x-text="selectedProduct.product_name"></h1>
-	<span class="hint-star star">
-		<i class="fa fa-star" aria-hidden="true"></i>
-		<i class="fa fa-star" aria-hidden="true"></i>
-		<i class="fa fa-star" aria-hidden="true"></i>
-		<i class="fa fa-star" aria-hidden="true"></i>
-		<i class="fa fa-star-o" aria-hidden="true"></i>
-	</span>
-  <h2>R <span x-text="selectedProduct.price"></span> </h2>
- 
-  <p class="information">Selected Price: R <span x-text="selectedProduct.calculated_price"></span></p>
+              <div class="w3-margin">
+                <img :src="serverUrl+'/'+selectedProduct.product_image" style="width:50%;max-width:250px" />
+              </div>
 
-  <button class="btn" @click="addSelectedQuantity(-1)">-</button>
-  <input class="w3-input w3-border w3-border-indigo w3-center" style="display:inline-block;width:50px;"
-    x-model="selectedProduct.selected_quantity" x-on:change.debounce="updateSelectedPrice()" />
-  <button class="btn" @click="addSelectedQuantity(1)">+</button>
+              <p class="w3-card w3-border w3-bold w3-padding-64 w3-padding" x-text="selectedProduct.description">
 
-
-	
-	<button class="btn">
-	 <span class="price" x-text="`R${Number(selectedProduct.calculated_price)}`"></span>
-   <span class="shopping-cart"><i class="fa fa-shopping-cart" aria-hidden="true"></i></span>
-   <span class="buy" @click="cartAdd()"><strong>Add To cart</strong></span>
- </button>
-
-
-</div>
-	
-<div class="product-image">
-	
-  <img :src="selectedProduct.product_image" style="width:50%;max-width:250px" />
-	
-
-<div class="info">
-	<h2> Description</h2>
-	<h3 x-text="selectedProduct.description"></h3>
-</div>
-</div>
-
-</div>
+              </p>
 
             </div>
 
             <div class="w3-half w3-padding" x-show="accountVisible">
-             
+              <p class="w3-xlarge w3-text-indigo">R <span x-text="selectedProduct.price"></span> </p>
+              <div class="w3-padding">
 
-              
+                <button class="w3-button w3-red w3-round-large w3-center" @click="addSelectedQuantity(-1)">-</button>
+                <input class="w3-input w3-border w3-border-indigo w3-center" style="display:inline-block;width:50px;"
+                  x-model="selectedProduct.selected_quantity" x-on:change.debounce="updateSelectedPrice()" />
+                <button class="w3-button w3-green w3-round-large w3-center" @click="addSelectedQuantity(1)">+</button>
+              </div>
+
+              <div>
+                <p>Selected Price: R <span x-text="selectedProduct.calculated_price"></span></p>
+              </div>
               <button class="w3-button w3-indigo w3-round-medium" @click="cartAdd()"> <i
                   class="fa fa-shopping-cart"></i> Add to cart</button>
             </div>
@@ -664,17 +660,11 @@
 
             </div>
 
-
-
           </div>
         </div>
-
-
       </div>
 
-
-
-      <div class="popup" x-show="popupVisible">
+      <div class="popup" x-show="popupVisible" style="display:none">
         <div id="overlay" @click="popupVisible=false">
           <div class="popup-text" x-text="popupMessage"></div>
         </div>
