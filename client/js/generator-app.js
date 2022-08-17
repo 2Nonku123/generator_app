@@ -1,8 +1,10 @@
 import Axios from "axios";
 import Joi from "joi";
+import Location from "./location";
 
 export default function GeneratorApp() {
   return {
+    serverUrl: "http://localhost:4017",
     /////////////////
     // View Constants
     VIEW_HOME: 1,
@@ -13,6 +15,12 @@ export default function GeneratorApp() {
     VIEW_SIGNIN: 6,
     VIEW_SIGNUP: 7,
     VIEW_PROFILE: 10,
+
+    VIEW_PROFILE_DETAILS: 900,
+    VIEW_PROFILE_ADDRESS: 901,
+    VIEW_PROFILE_ADD_ADDRESS: 902,
+    VIEW_PROFILE_EDIT_ADDRESS: 903,
+
     VIEW_ORDERS: 32,
     VIEW_ORDERS_LIST: 301,
     VIEW_ORDERS_ITEMS: 302,
@@ -32,9 +40,13 @@ export default function GeneratorApp() {
 
     currentSubView: 0,
     isAdmin: false,
+
+    addressProvince: 1,
+    addressCity: 1,
+    addressSuburb: 1,
+
     userLogginInfo: { first_name: "", lastname: "", user_type: "", user_id: 0 },
 
-    serverUrl: "",
     user: {
       user_name: "",
       password: "",
@@ -69,6 +81,8 @@ export default function GeneratorApp() {
       id: 0,
       house_number: 0,
       street_name: "",
+      suburb: "",
+      city: "",
       province: "",
       postal_code: 0,
     },
@@ -187,8 +201,30 @@ export default function GeneratorApp() {
     openProfile() {
       this.cleanUp();
       this.currentView = this.VIEW_PROFILE;
+      this.currentSubView = this.VIEW_PROFILE_DETAILS;
       this.loadProfile();
     },
+
+    openAddress() {
+      this.cleanUp();
+      this.currentView = this.VIEW_PROFILE;
+      this.currentSubView = this.VIEW_PROFILE_ADDRESS;
+      this.VIEW_PROFILE_ADD_ADDRESS();
+    },
+
+    openAddressAdd() {
+      this.cleanUp();
+      this.currentView = this.VIEW_PROFILE;
+      this.currentSubView = this.VIEW_PROFILE_ADD_ADDRESS;
+    },
+
+    openAddressEdit(addressSelect) {
+      this.cleanUp();
+      this.addressSelect = addressSelect;
+      this.currentView = this.VIEW_PROFILE;
+      this.currentSubView = this.VIEW_PROFILE_EDIT_ADDRESS;
+    },
+
     openOrders() {
       this.currentView = this.VIEW_ORDERS;
       this.currentSubView = this.VIEW_ORDERS_LIST;
@@ -640,6 +676,18 @@ export default function GeneratorApp() {
       this.addressData = [];
       this.categoryProductsData = [];
 
+      this.addressData = [];
+
+      this.addressSelect = {
+        id: 0,
+        house_number: 0,
+        street_name: "",
+        suburb: "",
+        city: "",
+        province: "",
+        postal_code: 0,
+      };
+
       this.selectedProduct = {
         id: 0,
         product_image: "",
@@ -693,6 +741,28 @@ export default function GeneratorApp() {
       this.popupVisible = true;
     },
 
+    /// new address handler
+
+    getProvince() {
+      const province = Location.province;
+
+      return province;
+    },
+
+    getCity() {
+      const city = Location.city.filter(
+        (x) => x.province_id == this.addressProvince
+      );
+
+      return city;
+    },
+
+    getSuburb() {
+      let suburb = Location.suburb.filter((x) => x.city_id == this.addressCity);
+
+      return suburb;
+    },
+
     getUserProfile() {
       this.resetUser();
       try {
@@ -732,7 +802,7 @@ export default function GeneratorApp() {
         user_id: 0,
       };
     },
-
+    
     saveToken() {
       localStorage.setItem("token", this.accountToken);
     },
