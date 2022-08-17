@@ -122,4 +122,19 @@ describe("The products API", function () {
     //const search = response.body;
     //assert.equal(40, search.length);
   })
+
+  
+  it(" admin user should be able to upload an image of products in the store", async () => {
+    const response = await supertest(app)
+    .post("/admin/product/:product_id/image")
+    //.set({ Authorization: `Bearer ${token}`});
+    //token = response.body.token;
+    const { status, message}= response.body;
+    if (status == "error") {
+      assert("Please provide an image", message);
+    } else {
+      assert("Product image uploaded")
+    }
+    
+  });
 });

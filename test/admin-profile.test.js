@@ -102,66 +102,66 @@ it("should update admin personal details", async () => {
     }
   });
 //3 
-  it("should allow admin to add user address", async () => {
-    const response = await supertest(app).post("/admin/profile/address").send({
+  //it("should allow admin to add user address", async () => {
+    //const response = await supertest(app).post("/admin/profile/address").send({
       
      //user_id:"58",
       
     //address_id: "45",
-    housenumber: "76",
-    street: "north st",
-    province: "gauteng",
-    postal_code: "1500"
+    //housenumber: "76",
+    //street: "north st",
+    //province: "gauteng",
+    //postal_code: "1500"
       
       
-    });
-    token = response.body.token;
-    const { status, message } = response.body;
-    if (status == "error") {
-      assert("Could not add address", message);
-    } else {
-      assert("Address added", message);
-    }
-  });
+   // });
+   // token = response.body.token;
+    //const { status, message } = response.body;
+    ////if (status == "error") {
+    //  assert("Could not add address", message);
+    //} else {
+     // assert("Address added", message);
+    //}
+  //});
   //4 
-  it("should allow admin to update user address", async () => {
-   const response = await supertest(app).put("/admin/profile/address").send({
+  //it("should allow admin to update user address", async () => {
+   //const response = await supertest(app).put("/admin/profile/address").send({
     //  user_id:"58",
-    address_id: "87",
-    housenumber: "766",
-    street: "south st",
-    province: "gauteng",
-    postal_code: "1400",
+   // address_id: "87",
+    //housenumber: "766",
+    //street: "south st",
+    //province: "gauteng",
+    //postal_code: "1400",
     
     
       
-    });
-    token = response.body.token;
-    const { status, message } = response.body;
-    if (status == "error") {
-    assert("Could not update address", message);
-    } else {
-      assert("Address updated", message);
-    }
-  });
+   // });
+   // token = response.body.token;
+    //const { status, message } = response.body;
+    //if (status == "error") {
+    //assert("Could not update address", message);
+    //} else {
+     // assert("Address updated", message);
+   // }
+  //});
   //5
-it("should allow admin to remove user address", async () => {
-    const response = await supertest(app)
-    .delete("/admin/profile/address/:address_id").send({
+//it("should allow admin to remove user address", async () => {
+   // const response = await supertest(app)
+    //.delete("/admin/profile/address/:address_id").send({
      // user_id:"56",
-     address_id: "45",
+     //address_id: "45",
       
       
       
-    });
-    token = response.body.token;
-    const { status, message } = response.body;
-    if (status == "error") {
-      assert("Could not find address", message);
-    } else {
-      assert("Address removed", message);
-    }
-  });
+   // });
+    //token = response.body.token;
+    //const { status, message } = response.body;
+    //if (status == "error") {
+     // assert("Could not find address", message);
+   // } else {
+      //assert("Address removed", message);
+   // }
+  //});
 //6 fail
 it("should allow admin to update users first and last names", async () => {
   const response = await supertest(app).put("/admin/profile/personal").send({
