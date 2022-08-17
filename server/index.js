@@ -411,6 +411,7 @@ app.post(
     req.body;
 
     let scheme = Joi.object({
+      id: Joi.number().empty().optional(),
       housenumber: Joi.number().min(0).max(99999).required(),
       street: Joi.string().min(3).max(200).required(),
       suburb: Joi.string().min(3).max(200).required(),
@@ -465,11 +466,11 @@ app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
     postal_code,
     suburb,
     city, 
-    address_id,
+    id,
    } = req.body;
 
   let scheme = Joi.object({
-    address_id: Joi.number().required(),
+    id: Joi.number().required(),
     housenumber: Joi.number().min(0).max(99999).required(),
     street: Joi.string().min(3).max(200).required(),
     suburb: Joi.string().min(3).max(200).required(),
@@ -497,7 +498,7 @@ app.put("/profile/address", checkAuthorizationToken, async function (req, res) {
       city,
       province,
       postal_code,
-      address_id,
+      id,
       req.user.user_id
     )
     .then((updateStatus) =>
@@ -1011,7 +1012,7 @@ app.post(
       cartTotal.total_quantity,
       is_delivery == 1,
       delivery_address,
-      2,
+      is_delivery == 1 ? 3 : 2,
       cartInfo.id
     );
 
@@ -1311,183 +1312,8 @@ app.put(
       );
   }
 );
+//removed address on admin side
 
-app.get(
-  "/admin/profile/address",
-  checkAdminAuthorizationToken,
-  async function (req, res) {
-    userManager
-      .getAddressAll(req.user.user_id)
-      .then((addressData) => res.json(addressData))
-      .catch((error) => res.json([]));
-  }
-);
-
-app.get(
-  "/admin/profile/address/:address_id",
-  checkAdminAuthorizationToken,
-  async function (req, res) {
-    const { address_id } = req.params;
-
-    let scheme = Joi.object({
-      address_id: Joi.number().min(1).required(),
-    });
-
-    let sResult = scheme.validate(req.params);
-
-    if (sResult.error !== undefined) {
-      res.json({
-        status: "error",
-        message: sResult.error.details[0].message,
-      });
-
-      return;
-    }
-
-    userManager
-      .getAddress(address_id, req.user.user_id)
-      .then((addressData) =>
-        res.json({
-          status: addressData != null ? "success" : "error",
-          message: addressData != null ? "" : "Could not find address",
-          address: addressData,
-        })
-      )
-      .catch((error) =>
-        res.json({ status: "error", message: "Could not find address" })
-      );
-  }
-);
-
-app.post(
-  "/admin/profile/address",
-  checkAdminAuthorizationToken,
-  async function (req, res) {
-    const { housenumber, street, province, postal_code } = req.body;
-
-    let scheme = Joi.object({
-      housenumber: Joi.number().min(0).max(99999).required(),
-      street: Joi.string().min(3).max(200).required(),
-      province: Joi.string().min(5).max(50).required(),
-      postal_code: Joi.string().min(4).max(4).required(),
-    });
-
-    let sResult = scheme.validate(req.body);
-
-    if (sResult.error !== undefined) {
-      res.json({
-        status: "error",
-        message: sResult.error.details[0].message,
-      });
-
-      return;
-    }
-
-    userManager
-      .addAddress(housenumber, street, province, postal_code, req.user.user_id)
-      .then((updateStatus) =>
-        res.json({
-          status: updateStatus > 0 ? "success" : "error",
-          message: updateStatus > 0 ? "Address added" : "Could not add address",
-        })
-      )
-      .catch((error) =>
-        res.json({
-          status: "error",
-          message: "Could not add address",
-        })
-      );
-  }
-);
-
-app.put(
-  "/admin/profile/address",
-  checkAdminAuthorizationToken,
-  async function (req, res) {
-    const { housenumber, street, province, postal_code, address_id } = req.body;
-
-    let scheme = Joi.object({
-      address_id: Joi.number().required(),
-      housenumber: Joi.number().min(0).max(99999).required(),
-      street: Joi.string().min(3).max(200).required(),
-      province: Joi.string().min(5).max(50).required(),
-      postal_code: Joi.string().min(4).max(4).required(),
-    });
-
-    let sResult = scheme.validate(req.body);
-
-    if (sResult.error !== undefined) {
-      res.json({
-        status: "error",
-        message: sResult.error.details[0].message,
-      });
-
-      return;
-    }
-
-    userManager
-      .updateAddress(
-        housenumber,
-        street,
-        province,
-        postal_code,
-        address_id,
-        req.user.user_id
-      )
-      .then((updateStatus) =>
-        res.json({
-          status: updateStatus > 0 ? "success" : "error",
-          message:
-            updateStatus > 0 ? "Address updated" : "Could not update address",
-        })
-      )
-      .catch((error) =>
-        res.json({
-          status: "error",
-          message: "Could not update address",
-        })
-      );
-  }
-);
-
-app.delete(
-  "/admin/profile/address/:address_id",
-  checkAdminAuthorizationToken,
-  async function (req, res) {
-    const { address_id } = req.params;
-
-    let scheme = Joi.object({
-      address_id: Joi.number().min(1).required(),
-    });
-
-    let sResult = scheme.validate(req.params);
-
-    if (sResult.error !== undefined) {
-      res.json({
-        status: "error",
-        message: sResult.error.details[0].message,
-      });
-
-      return;
-    }
-
-    userManager
-      .removeAddress(address_id, req.user.user_id)
-      .then((updateStatus) =>
-        res.json({
-          status: updateStatus > 0 ? "success" : "error",
-          message:
-            updateStatus > 0 ? "Address removed" : "Could not find address",
-        })
-      )
-      .catch((error) =>
-        res.json({
-          status: "error",
-          message: "Could not find address",
-        })
-      );
-  }
-);
 // Admin routes for user
 
 // Select Users
