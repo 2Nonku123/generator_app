@@ -45,6 +45,32 @@ export default function GeneratorApp() {
     addressCity: 1,
     addressSuburb: 1,
 
+    provinceData: [],
+    cityData: [],
+    suburbData: [],
+
+
+    populateLocation() {
+      this.provinceData = this.getProvince();
+      this.cityData = this.getCity();
+
+      this.suburbData = this.getSuburb();
+    },
+
+    updateProvince() {
+      this.cityData = this.getCity();
+      this.suburbData = [];
+    },
+
+    updateCity() {
+      this.suburbData = [];
+      this.suburbData = this.getSuburb();
+    },
+
+    orderOption: 1,
+    deliveryOption: 1,
+    delivertText: "",
+
     userLogginInfo: { first_name: "", lastname: "", user_type: "", user_id: 0 },
 
     user: {
@@ -85,6 +111,49 @@ export default function GeneratorApp() {
       city: "",
       province: "",
       postal_code: 0,
+    },
+
+    updateOrderOption(id) {
+      this.delivertText = "";
+      this.addressData = [];
+      this.addressSelect = {
+        id: 0,
+        housenumber: 0,
+        street: "",
+        suburb: "",
+        city: "",
+        province: "",
+        postal_code: 0,
+      };
+
+      // address
+      this.orderOption = id;
+      if (id == 2) {
+        this.updateDelivertOption(1)
+      }
+    },
+
+    updateDelivertOption(id) {
+
+      this.addressData = [];
+      this.delivertText = "";
+
+      this.addressSelect = {
+        id: 0,
+        housenumber: 0,
+        street: "",
+        suburb: "",
+        city: "",
+        province: "",
+        postal_code: 0,
+      };
+
+      switch (id) {
+        case 1:
+          this.loadAddress();
+          break;
+      }
+      this.deliveryOption = id;
     },
 
     accountName: "",
@@ -140,6 +209,26 @@ export default function GeneratorApp() {
 
       this.currentView = this.VIEW_HOME;
       this.loadHome();
+
+      this.sortLocation();
+    },
+
+    sortLocation() {
+      Location.city = Location.city.sort((x, y) =>
+        x.CityName < y.CityName ? -1 : x.CityName > y.CityName ? 1 : 0
+      );
+
+      Location.province = Location.province.sort((x, y) =>
+        x.ProvinceName < y.ProvinceName
+          ? -1
+          : x.ProvinceName > y.ProvinceName
+          ? 1
+          : 0
+      );
+
+      Location.suburb =Location.suburb.sort((x,y) =>
+      x.SuburbName < y.SuburbName ? -1 : x.SuburbName > y.SuburbName ? 1 : 0
+      );
     },
 
     ////////////////// Open View Functions
@@ -802,7 +891,7 @@ export default function GeneratorApp() {
         user_id: 0,
       };
     },
-    
+
     saveToken() {
       localStorage.setItem("token", this.accountToken);
     },
