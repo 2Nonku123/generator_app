@@ -3,6 +3,7 @@ import Joi from "joi";
 
 export default function GeneratorAdminApp() {
   return {
+    serverUrl: "http://localhost:4017",
     /////////////////
     // View Constants
     STORE_NAME: "Genx Shop",
@@ -68,7 +69,7 @@ export default function GeneratorAdminApp() {
       user_id: 0,
     },
     currentSubView: 0,
-    serverUrl: "",
+
     user: {
       user_name: "",
       password: "",
