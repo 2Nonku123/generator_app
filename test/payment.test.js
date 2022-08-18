@@ -50,5 +50,19 @@ describe("The Payment API", function () {
     
   });
 
+  it("should allow user to have items delivered to them", async () => {
+    const response = await supertest(app)
+    .post("/cart/complete/card")
+    .set({ Authorization: `Bearer ${token}`});
+    token = response.body.token;
+    const { status, message}= response.body;
+    if (status == "error") {
+      assert("Invalid delivery address", message);
+    } else {
+      assert("Cart completed")
+    }
+    
+  });
+
 
 });
