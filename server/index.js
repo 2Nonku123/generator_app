@@ -2501,6 +2501,40 @@ app.post(
   }
 );
 
+///report routes
+app.get(
+  "/report/sales",
+  async function(req, res) {
+    const { type, to, from, limit } = req.query;
+
+    let scheme = Joi.object({
+      product_type_id: Joi.number().integer().min(1).empty().optional(),
+      from:Joi.date().empty().optional(),
+      to: Joi.date().empty().optional(),
+      limit: Joi.number().integer().min(0).empty().optional(),
+    });
+    let sResult = scheme.validate(req.params);
+    if(sResult.error !== undefined){
+      res.json({
+        status: "error",
+        message: sResult.error.details[0].message,
+      });
+      return;
+    }
+    reportManager
+    .getSales(
+      type == null || type == "" ? 0 : type,
+      from,
+      to,
+      limit == null || limit == "" ? 0 : limit
+    )
+    .then((orderInfo) => res.json(orderInfo))
+    .catch((error) => {
+      console.log(error);
+      res.json([]);
+    });
+  }
+);
 ////
 function checkAuthorizationToken(req, res, next) {
   const authHeader = req.headers["authorization"];
