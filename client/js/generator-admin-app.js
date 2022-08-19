@@ -4,6 +4,7 @@ import Joi from "joi";
 export default function GeneratorAdminApp() {
   return {
     serverUrl: "http://localhost:4017",
+    //serverUrl: "",
     /////////////////
     // View Constants
     STORE_NAME: "Genx Shop",

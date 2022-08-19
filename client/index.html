@@ -89,8 +89,8 @@
         </div>
       </nav>
       <div x-show="accountVisible" class=" w3-padding w3-large">
-        <a href="#" class="w3-text-indigo w3-button w3-white w3-border" @click="openProfile()">Profile</a>
-        <a href="#" class="w3-text-indigo w3-button w3-white w3-border" @click="openAddress()">Manage Address</a>
+        <a href="#" class="w3-text-indigo w3-button w3-white w3-border" @click="openProfile()"
+          x-show="currentView != VIEW_PROFILE">Profile</a>
         <a href="#" class="w3-text-indigo w3-button w3-white w3-border" @click="openOrders()">Orders</a>
       </div>
 
@@ -174,10 +174,16 @@
       </div>
 
       <div class="w3-border w3-padding" x-show="currentView == VIEW_PROFILE">
-        <h3 class="mb-5 w3-text-indigo w3-xxlarge w3-center w3-padding-16"><i class="bi bi-user"></i> Profile</h3>
 
+        <div>
+          <button class="w3-button w3-white w3-border w3-border-left" @click="openProfile()"><i class="fa fa-user"></i>
+            Profile</button>
+          <button class="w3-button w3-white w3-border w3-border-left" @click="openAddress()"><i class="fa fa-home"></i>
+            Address</button>
+        </div>
 
-        <div class="w3-padding">
+        <div class="w3-padding" x-show="currentSubView == VIEW_PROFILE_DETAILS">
+          <h3 class="mb-5 w3-text-indigo w3-xxlarge w3-center w3-padding-16"><i class="bi bi-user"></i> Profile</h3>
 
           <div class="w3-padding w3-card mb-5">
             <h2 class="w3-padding w3-padding-16">Personal Details</h2>
@@ -237,6 +243,117 @@
             </div>
             <button class="w3-button w3-green" @click="updateProfilePassword()">Update Password</button>
           </div>
+        </div>
+
+        <div class="w3-padding" x-show="currentSubView == VIEW_PROFILE_ADDRESS">
+          <h2 class="w3-padding w3-padding-16">Profile Address List</h2>
+          <button class="w3-button w3-indigo" @click="openAddressAdd()"><i class="fa fa-plus"> Add Address</i> </button>
+          <div class="w3-padding mb-5">
+
+            <table class="w3-table-all w2-border">
+              <thead>
+                <tr class="w3-indigo">
+                  <th>Address ID</th>
+                  <th>House Number</th>
+                  <th>Street Name</th>
+                  <th>City</th>
+                  <th>Suburb</th>
+                  <th>Province</th>
+                  <th>Postal Code</th>
+                  <th></th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+                <template x-for="address_list in addressData">
+                  <tr>
+                    <td x-text="address_list.id"></td>
+                    <td x-text="address_list.housenumber"></td>
+                    <td x-text="address_list.street"></td>
+                    <td x-text="address_list.city"></td>
+                    <td x-text="address_list.suburb"></td>
+                    <td x-text="address_list.province"></td>
+                    <td x-text="address_list.postal_code"></td>
+                    <td>
+                      <button class="w3-button w3-blue w3-round-large" @click="openAddressEdit(address_list)"><i
+                          class="fa fa-pencil"></i></button>
+                      <button class="w3-button w3-red w3-round-large" @click="removeAddress(address_list.id)"><i
+                          class="fa fa-trash"></i></button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+
+            </table>
+          </div>
+
+
+        </div>
+
+        <div class="w3-padding"
+          x-show="currentSubView == VIEW_PROFILE_ADD_ADDRESS || currentSubView == VIEW_PROFILE_EDIT_ADDRESS ">
+
+          <h2 class="w3-padding w3-padding-16" x-show="currentSubView == VIEW_PROFILE_ADD_ADDRESS ">Add Address </h2>
+          <h2 class="w3-padding w3-padding-16" x-show="currentSubView == VIEW_PROFILE_EDIT_ADDRESS ">Edit Address </h2>
+
+
+
+          <div class="w3-padding row">
+            <div class="w3-half w3-padding">
+              <label>House Number:</label>
+              <input class="w3-input w3-border w3-border-indigo" x-model="addressSelect.housenumber" />
+            </div>
+            <div class="w3-half w3-padding">
+              <label>Street Name:</label>
+              <input class="w3-input w3-border w3-border-indigo" x-model="addressSelect.street" />
+            </div>
+          </div>
+
+          <div class="w3-padding row">
+            <div class="w3-half w3-padding">
+              <label>Province:</label>
+              <select @change="updateProvince()" class="w3-input w3-border w3-border-indigo" x-model="addressProvince">
+                <template x-for="province_item in provinceData">
+                  <option :value="province_item.province_id" x-text="province_item.ProvinceName"></option>
+                </template>
+              </select>
+            </div>
+            <div class="w3-half w3-padding">
+              <label>City:</label>
+              <select @change="updateCity()" class="w3-input w3-border w3-border-indigo" x-model="addressCity">
+                <template x-for="city_item in cityData">
+                  <option :value="city_item.city_id" x-text="city_item.CityName"></option>
+                </template>
+              </select>
+            </div>
+          </div>
+
+          <div class="w3-padding row">
+            <div class="w3-half w3-padding">
+              <label>Suburb:</label>
+              <select class="w3-input w3-border w3-border-indigo" x-model="addressSuburb">
+                <template x-for="suburb_item in suburbData">
+                  <option :value="suburb_item.suburb_id" x-text="suburb_item.SuburbName"></option>
+                </template>
+              </select>
+            </div>
+            <div class="w3-half w3-padding">
+              <label>Postal Code:</label>
+              <input class="w3-input w3-border w3-border-indigo" x-model="addressSelect.postal_code" />
+            </div>
+          </div>
+
+          <div class="w3-padding">
+            <button class="w3-button w3-indigo" @click="openAddress()"><i class="fa fa-arrow-left"></i> Back</button>
+            <button x-show="currentSubView == VIEW_PROFILE_ADD_ADDRESS" class="w3-button w3-green"
+              @click="addAddress()"><i class="fa fa-plus"></i>
+              Add Address</button>
+            <button x-show="currentSubView == VIEW_PROFILE_EDIT_ADDRESS" class="w3-button w3-green"
+              @click="editAddress()"><i class="fa fa-save"></i>
+              Update Address</button>
+          </div>
+
         </div>
 
       </div>
@@ -437,46 +554,127 @@
 
           <div class="w3-padding">
 
-            <div class="w3-padding w3-padding-16 w3-card">
+            <div class="w3-padding w3-padding-16 w3-row">
 
-              <div class="w3-row w3-padding">
-
-                <div class="w3-half w3-padding">
+              <div class="w3-row w3-padding w3-quarter w3-border">
+                <h2>Credit/Debit Details</h2>
+                <div class="w3-padding">
                   <label>Card Number</label>
                   <input type="number" maxlength="16" class="w3-input w3-border" placeholder="Card Number"
                     x-model="cartInfomation.card_number" />
-
                 </div>
 
-                <div class="w3-row w3-half w3-padding">
-                  <div class="w3-half">
-                    <label>Card Month</label>
-                    <input class="w3-input w3-border" type="number" maxlength="2" placeholder="Card Month"
-                      x-model="cartInfomation.card_month" />
-
-                  </div>
-
-                  <div class="w3-half">
-
-                    <label>Card Year</label>
-                    <input class="w3-input w3-border" type="number" maxlength="2" placeholder="Card Year"
-                      x-model="cartInfomation.card_year" />
-
-                  </div>
-
+                <div class="w3-padding">
+                  <label>Card Month</label>
+                  <input class="w3-input w3-border" type="number" maxlength="2" placeholder="Card Month"
+                    x-model="cartInfomation.card_month" />
                 </div>
-              </div>
 
-              <div class="w3-row">
-
-                <div class="w3-quarter w3-padding">
+                <div class="w3-padding">
+                  <label>Card Year</label>
+                  <input class="w3-input w3-border" type="number" maxlength="2" placeholder="Card Year"
+                    x-model="cartInfomation.card_year" />
+                </div>
+                <div class="w3-padding">
 
 
                   <label>Card CVC</label>
                   <input class="w3-input w3-border" type="number" maxlength="3" placeholder="Card CVC"
                     x-model="cartInfomation.card_cvc" />
                 </div>
+
               </div>
+
+              <div class="w3-row w3-padding w3-threequarter w3-border">
+                <h2>Collection / Delivery</h2>
+
+                <div class="w3-padding w3-border-bottom">
+                  <button :class="'w3-button w3-border '+(orderOption==1?'w3-green':'w3-ligh-gray')"
+                    @click="updateOrderOption(1)">
+                    <i class="fa fa-shopping-basket" aria-hidden="true"></i> Collect Order</button>
+                  <button :class="'w3-button w3-border '+(orderOption==2?'w3-green':'w3-ligh-gray')"
+                    @click="updateOrderOption(2)">
+                    <i class="fa fa-truck" aria-hidden="true"></i> Delivery</button>
+
+                </div>
+
+
+                <h2 x-show="orderOption==1">Order set to be collected</h2>
+
+
+
+                <div class="w3-padding w3-padding-16" x-show="orderOption==2">
+                  <div>
+                    <button :class="'w3-button w3-border '+(deliveryOption==3?'w3-brown':'w3-ligh-gray')"
+                      @click="updateDeliveryOption(3)"><i class="fa fa-star" aria-hidden="true"></i> Select
+                      Location</button>
+                    <button :class="'w3-button w3-border '+(deliveryOption==1?'w3-brown':'w3-ligh-gray')"
+                      @click="updateDeliveryOption(1)"><i class="fa fa-star" aria-hidden="true"></i> Select
+                      Address</button>
+
+                    <button :class="'w3-button w3-border '+(deliveryOption==2?'w3-brown':'w3-ligh-gray')"
+                      @click="updateDeliveryOption(2)"><i class="fa fa-star" aria-hidden="true"></i> Enter
+                      Address</button>
+                  </div>
+
+
+                  <div class="w3-padding" x-show="deliveryOption==2">
+                    <h2>Enter location a manually</h2>
+                    <textarea x-model="deliveryText" class="w3-input w3-border">
+
+                    </textarea>
+                  </div>
+
+                  <div class="w3-padding" x-show="deliveryOption==1">
+                    <h2 class="w3-padding w3-padding-16">Select an address</h2>
+                    <div class="w3-padding mb-5">
+
+                      <table class="w3-table-all w2-border">
+                        <thead>
+                          <tr class="w3-indigo">
+                            <th></th>
+                            <th>House Number</th>
+                            <th>Street Name</th>
+                            <th>City</th>
+                            <th>Suburb</th>
+                            <th>Province</th>
+                            <th>Postal Code</th>
+
+                          </tr>
+
+                        </thead>
+
+                        <tbody>
+                          <template x-for="address_pick in addressData">
+                            <tr :class="addressSelect.id == address_pick.id?'w3-green':'w3-white'">
+                              <td class="w3-white w3-center">
+                                <button class="w3-button w3-blue w3-round-large"
+                                  @click="addressSelect = address_pick"><i class="fa fa-mouse-pointer"></i>
+                                  Select</button>
+
+                              </td>
+                              <td x-text="address_pick.housenumber"></td>
+                              <td x-text="address_pick.street"></td>
+                              <td x-text="address_pick.city"></td>
+                              <td x-text="address_pick.suburb"></td>
+                              <td x-text="address_pick.province"></td>
+                              <td x-text="address_pick.postal_code"></td>
+
+                            </tr>
+                          </template>
+                        </tbody>
+
+                      </table>
+                    </div>
+
+
+                  </div>
+
+
+                </div>
+
+              </div>
+
             </div>
           </div>
           <div class="w3-right-align w3-padding">
@@ -660,9 +858,15 @@
 
             </div>
 
+
+
           </div>
         </div>
+
+
       </div>
+
+
 
       <div class="popup" x-show="popupVisible" style="display:none">
         <div id="overlay" @click="popupVisible=false">
@@ -672,6 +876,7 @@
 
     </div>
   </div>
+
   <script type="module" src="./js/main.js"></script>
 </body>
 

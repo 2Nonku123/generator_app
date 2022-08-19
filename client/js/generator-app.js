@@ -5,6 +5,7 @@ import Location from "./location";
 export default function GeneratorApp() {
   return {
     serverUrl: "http://localhost:4017",
+    //serverUrl: "",
     /////////////////
     // View Constants
     VIEW_HOME: 1,
@@ -49,7 +50,6 @@ export default function GeneratorApp() {
     cityData: [],
     suburbData: [],
 
-
     populateLocation() {
       this.provinceData = this.getProvince();
       this.cityData = this.getCity();
@@ -60,6 +60,7 @@ export default function GeneratorApp() {
     updateProvince() {
       this.cityData = this.getCity();
       this.suburbData = [];
+      //this.suburbData = this.getSuburb();
     },
 
     updateCity() {
@@ -69,7 +70,7 @@ export default function GeneratorApp() {
 
     orderOption: 1,
     deliveryOption: 1,
-    delivertText: "",
+    deliveryText: "",
 
     userLogginInfo: { first_name: "", lastname: "", user_type: "", user_id: 0 },
 
@@ -105,8 +106,8 @@ export default function GeneratorApp() {
     addressData: [],
     addressSelect: {
       id: 0,
-      house_number: 0,
-      street_name: "",
+      housenumber: 0,
+      street: "",
       suburb: "",
       city: "",
       province: "",
@@ -114,7 +115,7 @@ export default function GeneratorApp() {
     },
 
     updateOrderOption(id) {
-      this.delivertText = "";
+      this.deliveryText = "";
       this.addressData = [];
       this.addressSelect = {
         id: 0,
@@ -126,17 +127,16 @@ export default function GeneratorApp() {
         postal_code: 0,
       };
 
-      // address
+      //address
       this.orderOption = id;
       if (id == 2) {
-        this.updateDelivertOption(1)
+        this.updateDeliveryOption(1);
       }
     },
 
-    updateDelivertOption(id) {
-
+    updateDeliveryOption(id) {
       this.addressData = [];
-      this.delivertText = "";
+      this.deliveryText = "";
 
       this.addressSelect = {
         id: 0,
@@ -217,7 +217,6 @@ export default function GeneratorApp() {
       Location.city = Location.city.sort((x, y) =>
         x.CityName < y.CityName ? -1 : x.CityName > y.CityName ? 1 : 0
       );
-
       Location.province = Location.province.sort((x, y) =>
         x.ProvinceName < y.ProvinceName
           ? -1
@@ -225,9 +224,8 @@ export default function GeneratorApp() {
           ? 1
           : 0
       );
-
-      Location.suburb =Location.suburb.sort((x,y) =>
-      x.SuburbName < y.SuburbName ? -1 : x.SuburbName > y.SuburbName ? 1 : 0
+      Location.suburb = Location.suburb.sort((x, y) =>
+        x.SuburbName < y.SuburbName ? -1 : x.SuburbName > y.SuburbName ? 1 : 0
       );
     },
 
@@ -298,13 +296,19 @@ export default function GeneratorApp() {
       this.cleanUp();
       this.currentView = this.VIEW_PROFILE;
       this.currentSubView = this.VIEW_PROFILE_ADDRESS;
-      this.VIEW_PROFILE_ADD_ADDRESS();
+      this.loadAddress();
     },
 
     openAddressAdd() {
       this.cleanUp();
       this.currentView = this.VIEW_PROFILE;
       this.currentSubView = this.VIEW_PROFILE_ADD_ADDRESS;
+
+      this.populateLocation();
+
+      this.addressProvince = 1;
+      this.addressCity = 1;
+      this.addressSuburb = 1;
     },
 
     openAddressEdit(addressSelect) {
@@ -312,6 +316,18 @@ export default function GeneratorApp() {
       this.addressSelect = addressSelect;
       this.currentView = this.VIEW_PROFILE;
       this.currentSubView = this.VIEW_PROFILE_EDIT_ADDRESS;
+      this.populateLocation();
+      this.addressProvince =
+        Location.province.filter(
+          (x) => x.ProvinceName == addressSelect.province
+        )[0].province_id ?? 3;
+      this.addressCity =
+        Location.city.filter((x) => x.CityName == addressSelect.city)[0]
+          .city_id ?? 1;
+      this.addressSuburb =
+        Location.suburb.filter((x) => x.SuburbName == addressSelect.suburb)[0]
+          .suburb_id ?? 1;
+      this.populateLocation();
     },
 
     openOrders() {
@@ -333,6 +349,9 @@ export default function GeneratorApp() {
 
     openCheckout() {
       this.currentView = this.VIEW_CHECKOUT;
+      this.deliveryOption = 0;
+      this.orderOption = 1;
+      this.updateOrderOption(1);
     },
 
     /////////////////////////////////
@@ -394,6 +413,82 @@ export default function GeneratorApp() {
 
     signout() {
       this.removeToken();
+    },
+
+    loadAddress() {
+      this.addressData = [];
+
+      Axios.get(`${this.serverUrl}/profile/address`, {
+        headers: { authorization: `${this.accountToken}` },
+      })
+        .then((result) => result.data)
+        .then((result) => {
+          if (result && result.length > 0) {
+            this.addressData = result;
+          }
+        })
+        .catch((error) => this.handleError(error));
+    },
+
+    fixAddress() {
+      const province =
+        Location.province.filter(
+          (x) => x.province_id == this.addressProvince
+        )[0].ProvinceName ?? "";
+      const city =
+        Location.city.filter((x) => x.city_id == this.addressCity)[0]
+          .CityName ?? "";
+
+      const suburb =
+        Location.suburb.filter((x) => x.suburb_id == this.addressSuburb)[0]
+          .SuburbName ?? "";
+
+      this.addressSelect.city = city;
+      this.addressSelect.province = province;
+      this.addressSelect.suburb = suburb;
+    },
+    addAddress() {
+      this.fixAddress();
+      Axios.post(`${this.serverUrl}/profile/address`, this.addressSelect, {
+        headers: { authorization: `${this.accountToken}` },
+      })
+        .then((result) => result.data)
+        .then((result) => {
+          if (result.status == "success") {
+            this.openAddress();
+          }
+          this.handleMessage(result.message);
+        })
+        .catch((error) => this.handleError(error));
+    },
+
+    editAddress() {
+      this.fixAddress();
+      Axios.put(`${this.serverUrl}/profile/address`, this.addressSelect, {
+        headers: { authorization: `${this.accountToken}` },
+      })
+        .then((result) => result.data)
+        .then((result) => {
+          if (result.status == "success") {
+            this.openAddress();
+          }
+          this.handleMessage(result.message);
+        })
+        .catch((error) => this.handleError(error));
+    },
+
+    removeAddress(id) {
+      Axios.delete(`${this.serverUrl}/profile/address/${id}`, {
+        headers: { authorization: `${this.accountToken}` },
+      })
+        .then((result) => result.data)
+        .then((result) => {
+          if (result.status == "success") {
+            this.openAddress();
+          }
+          this.handleMessage(result.message);
+        })
+        .catch((error) => this.handleError(error));
     },
 
     loadCategory() {
@@ -637,11 +732,9 @@ export default function GeneratorApp() {
         .then((result) => result.data)
         .then((result) => {
           if (result.status == "success") {
-            this.handleMessage(result.message);
             this.loadCart();
-          } else {
-            this.handleMessage(result.message);
           }
+          this.handleMessage(result.message);
         })
         .catch((error) => this.handleError(error));
     },
@@ -663,6 +756,25 @@ export default function GeneratorApp() {
     },
 
     cartCompleteOrder() {
+      this.cartInfomation.is_delivery = this.orderOption == 2 ? 1 : 0;
+
+      if (this.orderOption == 2 && this.deliveryOption == 1) {
+        if (this.addressSelect.id == 0) {
+          this.handleMessage("Please select an address");
+          return;
+        }
+        this.cartInfomation.delivery_address = `
+        House Number: ${this.addressSelect.housenumber} , \r\n
+        Street Name: ${this.addressSelect.street} , \r\n
+        Suburb: ${this.addressSelect.suburb} , \r\n
+        City: ${this.addressSelect.city} , \r\n
+        Province: ${this.addressSelect.province} , \r\n
+        Postal Code: ${this.addressSelect.postal_code} , \r\n
+        `;
+      } else {
+        this.cartInfomation.delivery_address = this.deliveryText;
+      }
+
       Axios.post(`${this.serverUrl}/cart/complete/card`, this.cartInfomation, {
         headers: { authorization: `${this.accountToken}` },
       })
@@ -769,8 +881,8 @@ export default function GeneratorApp() {
 
       this.addressSelect = {
         id: 0,
-        house_number: 0,
-        street_name: "",
+        housenumber: 0,
+        street: "",
         suburb: "",
         city: "",
         province: "",
@@ -833,21 +945,23 @@ export default function GeneratorApp() {
     /// new address handler
 
     getProvince() {
-      const province = Location.province;
+      const province = Location.province.sort((x) => x.ProvinceName);
 
       return province;
     },
 
     getCity() {
-      const city = Location.city.filter(
-        (x) => x.province_id == this.addressProvince
-      );
+      const city = Location.city
+        .filter((x) => x.province_id == this.addressProvince)
+        .sort((x) => x.CityName);
 
       return city;
     },
 
     getSuburb() {
-      let suburb = Location.suburb.filter((x) => x.city_id == this.addressCity);
+      let suburb = Location.suburb
+        .filter((x) => x.city_id == this.addressCity)
+        .sort((x) => x.SuburbName);
 
       return suburb;
     },

@@ -307,7 +307,7 @@
                                                 Order
                                                 Collected</button>
 
-                                            <button class="btn w3-idigo w3-hover-gray"
+                                            <button class="btn w3-indigo w3-hover-gray"
                                                 x-show="selectedOrder.order_status_id == 3"
                                                 @click="setOrderstatus(4)"><i class="fa fa-arrow-right"></i>
                                                 Order Delivery: On
@@ -1083,7 +1083,6 @@
                                 <input type="email" class="form-control form-control-lg"
                                     x-model="userEdit.email_address" />
                             </div>
-                            
                         </div>
 
                         <div class="w3-row">
@@ -1126,6 +1125,57 @@
                 </div>
 
             </div>
+            <div class="w3-padding" x-show="currentView == VIEW_REPORT">
+
+                <div class="w3-padding w3-white">
+                    <H1 class="w3-text-indigo w3-center w3-padding-16"><i class="fa fa-home"></i> Reports</H1>
+
+                    <div class="w3-row">
+                        <div class="w3-padding w3-quarter" @click="openUsers()">
+                            <div
+                                class="w3-padding-16 w3-indigo w3-center w3-round-large w3-hover-gray w3-button w3-block">
+                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-users'></i></div>
+                                <h3><span x-text="stats.user_count"></span> User(s)</h3>
+                                <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="w3-padding w3-quarter" @click="openCategories()">
+                            <div
+                                class="w3-padding-16 w3-green w3-center w3-round-large w3-hover-gray w3-button w3-block">
+                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-cubes'></i></div>
+                                <h3><span x-text="stats.product_count"></span> Product(s)</h3>
+                                <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="w3-padding w3-quarter" @click="openOrders()">
+                            <div
+                                class="w3-padding-16 w3-brown w3-center w3-round-large w3-hover-gray w3-button w3-block">
+                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-file'></i></div>
+                                <h3><span x-text="stats.order_count"></span> Order(s)</h3>
+                                <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+
+                        <div class="w3-padding w3-quarter" @click="openReports()">
+                            <div
+                                class="w3-padding-16 w3-purple w3-center w3-round-large w3-hover-gray w3-button w3-block">
+                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-pie-chart'></i></div>
+                                <h3><span></span> Reports</h3>
+                                <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+
+            </div>
+
+
+
 
             <div class="popup" x-show="popupVisible" style="display:none">
                 <div id="overlay" @click="popupVisible=false">
@@ -1133,7 +1183,6 @@
                 </div>
             </div>
         </div>
-        
 
     </div>
     <script type="module" src="./js/main-admin.js"></script>
