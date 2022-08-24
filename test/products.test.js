@@ -19,19 +19,19 @@ let assert = require("assert");
 
 describe("The products API", function () {
   
- it(" user should be able to find products in the store", async () => {
-    const response = await supertest(app)
-    .get("/store/product/:product_id")
+ //it(" user should be able to find products in the store", async () => {
+    //const response = await supertest(app)
+    //.get("/store/product/:product_id")
     //.set({ Authorization: `Bearer ${token}`});
     //token = response.body.token;
-    const { status, message}= response.body;
-    if (status == "error") {
-      assert("res.sendStatus(404)", message);
-    } else {
-      assert("res.sendStatus(200)")
-    }
+   // const { status, message}= response.body;
+    //if (status == "error") {
+     // assert("res.sendStatus(404)", message);
+    //} else {
+      //assert("res.sendStatus(200)")
+    //}
     
-  });
+  //});
 
   it(" admin user should be able to add products in the store", async () => {
     const response = await supertest(app)
@@ -103,25 +103,25 @@ describe("The products API", function () {
     
   });
 
-  it ("should be able to search for items in store by name", async () =>{
-    const search_name = "dal";
-    const response = await supertest(app)
-    .get('/store/search/:search_name')
-    const search = response.body;
+  //it ("should be able to search for items in store by name", async () =>{
+    //const search_name = "dal";
+    //const response = await supertest(app)
+    //.get('/store/search/:search_name')
+    //const search = response.body;
     //assert.equal(search_name, search.length);
-    const {status, message}= response.body;
-    if (status == "error") {
-      assert("res.sendStatus(404)", message);
+    //const {status, message}= response.body;
+    //if (status == "error") {
+      //assert("res.sendStatus(404)", message);
 
-    }else {
-      assert("res.sendStatus(200)")
-    }
+    //}else {
+      //assert("res.sendStatus(200)")
+    //}
     
     //.get(`/store/search/${search_name}`)
     //.expect(200);
     //const search = response.body;
     //assert.equal(40, search.length);
-  })
+  //})
 
   
   it(" admin user should be able to upload an image of products in the store", async () => {

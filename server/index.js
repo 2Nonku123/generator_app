@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
 const pg = require("pg");
-const Hashids = require("hashids");
+
 const Joi = require("joi");
 const fs = require("fs");
 //image upload
@@ -70,13 +70,7 @@ const reportManager = ReportManager(pool);
 
 const PORT = process.env.PORT || 4017;
 
-// hash all ids so that they are predictable by the user
-function hashID(value, saltKey) {
-  let hashids = new Hashids(saltKey);
-  value.forEach((element) => {
-    element.id = hashids.encode(element.id)[0];
-  });
-}
+
 
 ////////////////////////////
 //image resize // https://appdividend.com/2022/03/03/node-express-image-upload-and-resize/
