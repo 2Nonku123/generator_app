@@ -23,6 +23,7 @@ const ProductAdminManager = require("./manager-admin/ProductAdminManager");
 const UserAdminManager = require("./manager-admin/UserAdminManager");
 const ReportManager = require("./manager-admin/reportManager");
 
+//const data = require("./data.json");
 
 
 const Pool = pg.Pool;
