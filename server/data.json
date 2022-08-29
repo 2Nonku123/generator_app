@@ -1,0 +1,350 @@
+
+[{
+"img":"gen1.jpg",
+"name":"Duro star",
+"description":"Model no:ZH6500,Power output:15kW", 
+"features":"certification approved, fuel efficient, Longer Life & Less Maintenance, Engine will automatically turn fff When oil is low", 
+"price":"Price R12000",
+"rentalprice":" Rental price R20/h",
+"status":"Available"},
+
+{
+    "img":"gen2.png",
+    "name":"Canibas",
+    "description":"Model no:XY5474,Power output:13kW",
+    "features": "Portable compact structure, easy portability",
+     "price":"Price R11000",
+     "rentalprice":"Rental price R20/h",
+     "status":"Available"},
+
+{
+    "img":"gen3.jpg",
+    "name":"Wen",
+    "description":"Model no:ZH5500,Power output:14kW",
+    "features": "Generator Comes With Oil, Battery, 30A Cord, and a 1 Year Limited Warranty",
+    "price":"Price R13000",
+    "rentalprice":"Rental price R30/h",
+    "status":"Out of-stock"},
+
+{
+    "img":"gen4.jpg",
+    "name":"Wanco",
+    "description":"Model no:ZH4500, Power output:13.5kW", 
+    "features": "Powers fridge, furnace, lights, TV, and much more, Automatic voltage regulation protects solid state equipment",
+    "price":"Price R12500",
+    "rentalprice":"Rental price R30/h",
+    "status":"in-stock"},
+
+{
+    "img":"gen5.jpg",
+    "name":"Generag",
+    "description":"Model no:ZH7500, Power output:17kW",
+    "features":"Patent design, unique appearance and function, Advanced technology with THD<5% avaliable",
+    "price":"Price R15000",
+    "rentalprice":"Rental price R40/h",
+    "status":"Available"},
+{
+    "img":"gen6.jpg",
+    "name":"Generac",
+    "description":"Model no:GP7600, Power output:18kW",
+    "features":"Outdoor power supply 250W lithium-ion energy system solar charging generator energy storage",
+    "price":"Price R15500",
+    "rentalprice":"Rental price R50/h",
+    "status":"Out of-stock"},
+ {
+    "img":"gen7.jpg",
+    "name":"Honda",
+    "description":"Model no:GX7678, Power output:20kW",
+    "features":"Patent design, unique appearance and function, Advanced technology with THD<5% avaliable",
+    "price":"Price R17000",
+    "rentalprice":"Rental price R60/h",
+    "status":"Available"},
+{
+    "img":"gen8.jpg",
+    "name":"Wanco",
+    "description":"Model no:WT600, Power output:15kW",
+    "features":"Gasoline engine electric generator price factory for home use",
+    "price":"Price R14000",
+    "rentalprice":"Rental price R40/h",
+    "status":"Available"},
+{
+    "img":"gen9.jpg",
+    "name":"Tes",
+    "description":"Model no:AG800, Power output:19kW",
+    "features":"Three-phase generator,electric ignition,electronic current control,electronic digital control panel",
+    "price":"Price R18999",
+    "rentalprice":"Rental price R79/h",
+    "status":"Available"},
+{
+    "img":"gen10.jpg",
+    "name":"Generag",
+    "description":"Model no:GP600, Power output:18.7kW",
+    "features":"Tank capacity 6 liters, portable with wheels",
+    "price":"Price R17999",
+    "rentalprice":"Rental price R55/h",
+    "status":"Available"},
+{
+    "img":"gen11.jpg",
+    "name":"Champion",
+    "description":"Model no:ZH1500,Power output:17.5kW", 
+    "features":"Economical, reliable and durable", 
+    "price":"Price R19000",
+    "rentalprice":" Rental price R70/h",
+    "status":"Available"},
+        
+        
+{
+    "img":"gen12.png",
+    "name":"Champion",
+    "description":"Model no:AXN700,Power output:20kW",
+    "features": "Four legged support assembly is adopted to make the operation more stable and reliable",
+    "price":"Price R20000",
+    "rentalprice":"Rental price R80/h",
+    "status":"Available"},
+        
+        
+{
+    "img":"gen13.jpg",
+    "name":"Champion",
+    "description":"Model no:VB800,Power output:24kW",
+    "features": "The power output is strong and the motor waveform output is stable",
+    "price":"Price R13900",
+    "rentalprice":"Rental price R60/h",
+    "status":"Available"},
+        
+{
+    "img":"gen14.jpg",
+    "name":"Generac",
+    "description":"Model no:HD800, Power output:25kW", 
+    "features": "Professional alternator. High effciency",
+    "price":"Price R15000",
+    "rentalprice":"Rental price R70/h",
+    "status":"Out of-stock"},
+        
+{
+    "img":"gen15.jpg",
+    "name":"WesPack",
+    "description":"Model no:ZH7500, Power output:20kW",
+    "features":"Double protection, equipped with accurate current, overvoltage and overload protect",
+    "price":"Price R16000",
+    "rentalprice":"Rental price R60/h",
+    "status":"Available"},
+{
+    "img":"gen16.jpg",
+    "name":"Generac",
+    "description":"Model no:GP7600, Power output:30kW",
+    "features":"Large oil tank volume, long operation time and low fuel consumption",
+    "price":"Price R30000",
+    "rentalprice":"Rental price R80/h",
+    "status":"Available"},
+{
+    "img":"gen17.jpg",
+    "name":"Honda",
+    "description":"Model no:GX7678, Power output:60kW",
+    "features":"AC generator, stable performance, low fault rate",
+    "price":"Price R40000",
+    "rentalprice":"Rental price R90/h",
+    "status":"Available"},
+{
+    "img":"gen18.jpg",
+    "name":"Powermate",
+    "description":"Model no:WT600, Power output:80kW",
+    "features":"Brushless alternator and non-contact electronic ignition system adopted for easy maintenance",
+    "price":"Price R50000",
+    "rentalprice":"Rental price R100/h",
+    "status":"Available"},
+{
+    "img":"gen19.jpg",
+    "name":"ClarkePower",
+    "description":"Model no:AG800, Power output:90kW",
+    "features":"Bigger fuel tank enables 13-hour running, large muffler for quiet operation",
+    "price":"Price R89999",
+    "rentalprice":"Rental price R179/h",
+    "status":"Available"},
+{
+    "img":"gen20.jpg",
+    "name":"Powermate",
+    "description":"Model no:GP600, Power output:18.7kW",
+    "features":"Competition price and good quality, global warranty. Neat and economical for classical design",
+    "price":"Price R19999",
+    "rentalprice":"Rental price R55/h",
+    "status":"Available"},
+
+{
+    "img":"gas1.jpg",
+    "name":"GasBank",
+    "description":"Model no:BN-5KG,Capacity:5kg", 
+    "features":"External control valve and standard camping fitting (3/8” bsp).", 
+    "price":"Price R610",
+    "rentalprice":" Rental price R3/h",
+    "status":"Available"},
+        
+        
+{
+    "img":"gas2.png",
+    "name":"Daly cylinder",
+    "description":"Model no:BN-5kg-A,Capacity:5kg",
+    "features": "Portable compact structure, easy portability",
+    "price":"Price R595",
+    "rentalprice":"Rental price R2.5/h",
+    "status":"Available"},
+        
+        
+{
+    "img":"gas3.jpg",
+    "name":"Alva",
+    "description":"Model no:BN-6kg-A,Capacity:6kg",
+    "features": "Easy access, practical fingertip control valve",
+    "price":"Price R680",
+    "rentalprice":"Rental price R3/h",
+    "status":"Out of-stock"},
+        
+{
+    "img":"gas4.jpg",
+    "name":"Cassandra",
+    "description":"Model no:BN-6kg-B, Capacity:6kg", 
+    "features": "Safety shroud protects valve and doubles up as convenient carry handle.",
+    "price":"Price R630",
+    "rentalprice":"Rental price R3/h",
+    "status":"in-stock"},
+        
+{
+    "img":"gas5.jpg",
+    "name":"Bluegas",
+    "description":"Model no:, Capacity:3kg",
+    "features":"Safe, convenient, easy to use",
+    "price":"Price R550",
+    "rentalprice":"Rental price R2.5/h",
+    "status":"Available"},
+
+{
+    "img":"gas6.jpg",
+    "name":"CADEC",
+    "description":"Model no:GP7600, Capacity:5kg",
+    "features":"Domestic cylinder with vertical exit valve(3/8BSP)",
+    "price":"Price R599",
+    "rentalprice":"Rental price R2.9/h",
+    "status":"Out of-stock"},
+{
+    "img":"gas7.jpg",
+    "name":"Flogas",
+    "description":"Model no:BN-6kg-A, Capacity:6kg",
+    "features":"Gas available for/to swap with empty cylinders",
+    "price":"Price R650",
+    "rentalprice":"Rental price R3/h",
+    "status":"Available"},
+{
+    "img":"gas8.jpg",
+    "name":"Daly cylinder",
+    "description":"Model no:LPG-10KG, Capacity:10kg",
+    "features":"Clean burning and accidental discharge is quickly detected",
+    "price":"Price R995",
+    "rentalprice":"Rental price R4.5/h",
+    "status":"Available"},
+{
+    "img":"gas9.jpg",
+    "name":"CALOR",
+    "description":"Model no:BN-11kg-B, Capacity:11kg",
+    "features":"High heat range",
+    "price":"Price R1100",
+    "rentalprice":"Rental price R5/h",
+    "status":"Available"},
+{
+    "img":"gas10.jpg",
+    "name":"Primus",
+    "description":"Model no:LPG-4KG, Capacity:4kg",
+    "features":"Basic Certificate Charge:Free",
+    "price":"Price R589",
+    "rentalprice":"Rental price R2.5/h",
+    "status":"Available"},
+{
+    "img":"gas11.jpg",
+    "name":"Daly cylinder",
+    "description":"Model no:SDT7KG, Capacity:7kg,", 
+    "features":"Highly efficient", 
+    "price":"Price R750",
+    "rentalprice":" Rental price R3.5/h",
+    "status":"Available"},
+                
+                
+{
+    "img":"gas12.jpg",
+    "name":"Daly cylinder",
+    "description":"Model no:AGT7KG, Capacity:7kg",
+    "features": "Body Thickness:23mm~30mm",
+    "price":"Price R799",
+    "rentalprice":"Rental price R3.9/h",
+    "status":"Available"},
+                
+                
+{
+    "img":"gas13.jpg",
+    "name":"Flogas",
+    "description":"Model no:JHY8KG, Capacity:8kg",
+    "features": "Condition:New, Shroud & Base Steel QualityQ235",
+    "price":"Price R820",
+    "rentalprice":"Rental price R4/h",
+    "status":"Available"},
+                
+{
+    "img":"gas14.jpg",
+    "name":"GasBank",
+    "description":"Model no:JKY8KG, Capacity:8kg  ", 
+    "features": "Working Pressure:2.1MPa, Working Temperature-40ºC~60ºC",
+    "price":"Price R810",
+    "rentalprice":"Rental price R4/h",
+    "status":"Out of-stock"},
+                
+{
+    "img":"gas15.jpg",
+    "name":"Coleman",
+    "description":"Model no:IUT16KG, Capacity:16kg  ",
+    "features":"Storage Medium:LPG,Pressure Level:Medium",
+    "price":"Price R1200",
+    "rentalprice":"Rental price R5.2/h",
+    "status":"Available"},
+{
+    "img":"gas16.jpg",
+    "name":"",
+    "description":"Model no:KHY9KG, Capacity:9kg ",
+    "features":"Material:Steel,Pressure:1.6MPa≤p<10.0MPa",
+    "price":"Price R869",
+    "rentalprice":"Rental price R4/h",
+    "status":"Available"},
+{
+    "img":"gas17.jpg",
+    "name":"FlameKing",
+    "description":"Model no:BN-20kg-A, Capacity:20kg",
+    "features":"Wall Thickness(mm)4.3, Testing Pressure(Mpa)20",
+    "price":"Price R1500",
+    "rentalprice":"Rental price R7.5/h",
+    "status":"Available"},
+{
+    "img":"gas18.jpg",
+    "name":"FourSeasons",
+    "description":"Model no:KJH6KG, Capacity:6kg ",
+    "features":"Inner Diameters(mm)215, Outer Diameter(mm)219.6",
+    "price":"Price R630",
+    "rentalprice":"Rental price R3/h",
+    "status":"Available"},
+{
+    "img":"gas19.jpg",
+    "name":"Flogas",
+    "description":"Model no:DGT7KG, Capacity:7kg ",
+    "features":"Testing Pressure(Mpa):3.0, Height(mm)334",
+    "price":"Price R740",
+    "rentalprice":"Rental price R4/h",
+    "status":"Available"},
+{
+    "img":"gas20.jpg",
+    "name":"Casmate",
+    "description":"Model no:BGY4KG, Capacity: 4kg",
+    "features":"Material:Carbon Steel, Pressure:1.6MPa≤p<10.0MPa",
+    "price":"Price R570",
+    "rentalprice":"Rental price R2.5/h",
+    "status":"Available"}
+
+            
+]
+
+
