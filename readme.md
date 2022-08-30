@@ -5,8 +5,11 @@ Github Actions Test
 
 Customer can:
 -Register
+
 -Log in
+
 -View & search for products available in store
+
 -Update contact and personal details
 -Add address
 -Add items to cart
