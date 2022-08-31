@@ -1,11 +1,18 @@
-module.exports = function StoreManager(pool) {
+
+  const { getPool } = require("../module/database");
+module.exports = function StoreManager() {
+  const pool = getPool();
   async function getProductType() {
-    const result = await pool.query(`select * from product_type`);
+    //const result = await pool.query(`select * from product_type`);
+    const result = await pool.query(
+      `select * from product_type ORDER BY product_type.name`
+    );
     return result.rows;
   }
 
   async function getProductsTop() {
     const result = await pool.query(
+      
       `SELECT
       product.id, product.product_name, 
       product.price,description, product.quantity, product.available, 

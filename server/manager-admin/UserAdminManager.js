@@ -1,4 +1,8 @@
-module.exports = function UserAdminManager(pool) {
+
+  const { getPool } = require("../module/database");
+
+module.exports = function UserAdminManager() {
+  const pool = getPool();
   async function getUsers() {
     const result = await pool.query(
       `SELECT store_user.id, first_name, lastname, user_name, email_address, contact_number, date_registered, user_type_id, locked, locked_date

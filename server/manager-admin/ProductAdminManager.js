@@ -1,4 +1,8 @@
-module.exports = function ProductAdminManager(pool) {
+
+  const { getPool } = require("../module/database");
+
+module.exports = function ProductAdminManager() {
+  const pool = getPool();
   async function getProductType() {
     const result = await pool.query(
       `select * from product_type ORDER BY product_type.name`

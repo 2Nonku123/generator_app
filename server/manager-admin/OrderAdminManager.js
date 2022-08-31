@@ -1,4 +1,8 @@
-module.exports = function OrderAdminManager(pool) {
+
+  const { getPool } = require("../module/database");
+
+module.exports = function OrderAdminManager() {
+  const pool = getPool();
   async function getOrder(order_id) {
     const result = await pool.query(
       `SELECT

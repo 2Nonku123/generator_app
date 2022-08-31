@@ -1,4 +1,7 @@
-module.exports = function UserManager(pool) {
+
+  const { getPool } = require("../module/database");
+module.exports = function UserManager() {
+  const pool = getPool();
   // basic users
   async function registerUser(
     first_name,

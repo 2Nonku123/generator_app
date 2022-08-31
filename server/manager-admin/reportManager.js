@@ -1,4 +1,8 @@
-module.exports = function userAdminManager(pool) {
+
+  const { getPool } = require("../module/database");
+
+module.exports = function UserAdminManager() {
+  const pool = getPool();
     async function getSales(
         product_type_id = 0,
         order_from = "",
