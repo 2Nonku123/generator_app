@@ -195,13 +195,16 @@ module.exports = function StoreManager() {
     const result = await pool.query(
       `SELECT 
       user_order.id,
-      user_order.order_date,
+      TO_CHAR(user_order.order_date,'hh:ii dd Mon yyyy') AS order_date, 
+     
       user_order.order_total,
       user_order.order_items, 
-      order_status.description as "order_status"
+      order_status.description as "order_status",
+      user_order.delivery_address,
+      user_order.is_delivery
       FROM user_order 
       INNER JOIN order_status ON order_status.id = user_order.order_status_id
-      WHERE user_id = $1 AND is_cart = $2`,
+      WHERE user_id = $1 AND is_cart = $2 ORDER BY user_order.order_date DESC`,
       [user_id, is_cart]
     );
 

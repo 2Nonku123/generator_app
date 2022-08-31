@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <script src="https://unpkg.com/dropzone@5/dist/min/dropzone.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/dropzone@5/dist/min/dropzone.min.css" type="text/css" />
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <title>GenX Admin</title>
 </head>
 
@@ -35,7 +35,7 @@
 
         <div x-show="page_loaded" style="display:none">
 
-            <nav class="navbar navbar-expand-sm navbar-dark w3-indigo">
+            <nav class="navbar navbar-expand-sm navbar-dark bg-dark w3-text-white">
                 <div class="container-fluid">
                     <a class="navbar-brand" href="javascript:void(0)">GenX Admin</a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -135,7 +135,8 @@
 
                         <div class="w3-padding w3-large">
                             <label class="">User Name: </label>
-                            <span class="form-control form-control-lg w3-indigo" x-text="profileData.user_name"></span>
+                            <span class="form-control form-control-lg bg-dark w3-text-white"
+                                x-text="profileData.user_name"></span>
                         </div>
 
                         <div class="w3-row ">
@@ -204,7 +205,7 @@
                         Order</button>
                     <table class="w3-padding w3-table-all" x-show="orderData.length > 0">
 
-                        <tr class="w3-indigo">
+                        <tr class="bg-dark w3-text-white">
                             <th>Order Number</th>
                             <th>Order By</th>
                             <th>Order Date</th>
@@ -260,7 +261,7 @@
 
                             <table class="w3-table-all w3-border w3-border-indigo">
                                 <thead>
-                                    <tr class="w3-indigo">
+                                    <tr class="bg-dark w3-text-white">
                                         <th class="w3-large w3-padding-16" colspan="4"
                                             x-text="'Order Number: #'+selectedOrder.order_id"></th>
                                     </tr>
@@ -268,27 +269,29 @@
 
                                 <thead>
                                     <tr>
-                                        <td class="w3-indigo">Order Date:</td>
+                                        <td class="bg-dark w3-text-white">Order Date:</td>
                                         <td x-text="selectedOrder.order_date"></td>
-                                        <td class="w3-indigo">Order Status:</td>
+                                        <td class="bg-dark w3-text-white">Order Status:</td>
                                         <td x-text="selectedOrder.order_status"></td>
                                     </tr>
                                     <tr>
-                                        <td class="w3-indigo">Total Amount: </td>
+                                        <td class="bg-dark w3-text-white">Total Amount: </td>
                                         <td>R <span x-text="selectedOrder.order_total"></span></td>
-                                        <td class="w3-indigo">Total Items: </td>
+                                        <td class="bg-dark w3-text-white">Total Items: </td>
                                         <td x-text="selectedOrder.order_items"></td>
                                     </tr>
                                     <tr>
                                         <td colspan="4">
-                                            <h4 class="w3-indigo w3-xlarge w3-bold w3-padding">Customer Details</h4>
+                                            <h4 class="bg-dark w3-text-white w3-xlarge w3-bold w3-padding">Customer
+                                                Details</h4>
                                             <p class="w3-padding w3-text-gray w3-large"
                                                 x-text="selectedOrder.first_name+' '+selectedOrder.lastname"></p>
                                         </td>
                                     </tr>
                                     <tr class="w3-white">
                                         <td class="w3-white" colspan="4">
-                                            <h4 class="w3-indigo w3-xlarge w3-bold w3-padding">Delivery Information</h4>
+                                            <h4 class="bg-dark w3-text-white w3-xlarge w3-bold w3-padding">Delivery
+                                                Information</h4>
                                             <p class="w3-padding-16 w3-padding w3-text-gray w3-large"
                                                 x-text="selectedOrder.is_delivery?'Deliver to Customer':'Customer Collection'">
                                             </p>
@@ -307,7 +310,7 @@
                                                 Order
                                                 Collected</button>
 
-                                            <button class="btn w3-indigo w3-hover-gray"
+                                            <button class="btn bg-dark w3-text-white w3-hover-gray"
                                                 x-show="selectedOrder.order_status_id == 3"
                                                 @click="setOrderstatus(4)"><i class="fa fa-arrow-right"></i>
                                                 Order Delivery: On
@@ -343,7 +346,7 @@
                         <table class="w3-table-all">
 
                             <thead>
-                                <tr class="w3-indigo w3-bold">
+                                <tr class="bg-dark w3-text-white w3-bold">
                                     <th></th>
                                     <th>Product Name</th>
                                     <th>Ordered Quantity</th>
@@ -404,7 +407,7 @@
 
                             <table class="w3-padding w3-table-all" x-show="orderSearchData.length > 0">
 
-                                <tr class="w3-indigo">
+                                <tr class="bg-dark w3-text-white">
                                     <th>Order Number</th>
                                     <th>Order By</th>
                                     <th>Order Date</th>
@@ -460,13 +463,13 @@
 
             <div class="w3-padding" x-show="currentView == VIEW_HOME">
 
-                <div class="w3-padding w3-white">
+                <div class="w3-padding">
                     <H1 class="w3-text-indigo w3-center w3-padding-16"><i class="fa fa-home"></i> Admin Panel</H1>
 
                     <div class="w3-row">
                         <div class="w3-padding w3-quarter" @click="openUsers()">
                             <div
-                                class="w3-padding-16 w3-indigo w3-center w3-round-large w3-hover-gray w3-button w3-block">
+                                class="w3-padding-16 bg-dark w3-text-white w3-center w3-round-large w3-hover-gray w3-button w3-block">
                                 <div class="w3-xxxlarge w3-text-white"><i class='fa fa-users'></i></div>
                                 <h3><span x-text="stats.user_count"></span> User(s)</h3>
                                 <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
@@ -586,7 +589,7 @@
 
 
                         <div class="w3-padding">
-                            <button class="w3-button w3-indigo" @click="openCategories()"><i
+                            <button class="w3-button bg-dark w3-text-white" @click="openCategories()"><i
                                     class="fa fa-arrow-left"></i> Back</button>
 
                             <button class="w3-button w3-green" @click="editCategory()"><i class="fa fa-save"></i>
@@ -610,7 +613,7 @@
 
                         <table class="w3-table-all">
                             <thead>
-                                <tr class="w3-indigo">
+                                <tr class="bg-dark w3-text-white">
                                     <th></th>
                                     <th>Product Name</th>
                                     <th>Price</th>
@@ -681,7 +684,7 @@
 
                             <table class="w3-table-all">
                                 <thead>
-                                    <tr class="w3-indigo">
+                                    <tr class="bg-dark w3-text-white">
                                         <th></th>
                                         <th>Product Name</th>
                                         <th>Price</th>
@@ -839,7 +842,7 @@
                         </div>
 
                         <div class="w3-padding">
-                            <button class="w3-button w3-indigo" @click="openCategories()"><i
+                            <button class="w3-button bg-dark w3-text-white" @click="openCategories()"><i
                                     class="fa fa-arrow-left"></i> Back</button>
                             <button x-show="currentSubView == VIEW_PRODUCT_ADD" class="w3-button w3-green"
                                 @click="addProduct()"><i class="fa fa-plus"></i>
@@ -873,7 +876,7 @@
 
                         <table class="w3-table-all">
                             <thead>
-                                <tr>
+                                <tr class="bg-dark w3-text-white w3-padding">
                                     <th>User #</th>
                                     <th>First Name</th>
                                     <th>Lastname</th>
@@ -1127,42 +1130,42 @@
             </div>
             <div class="w3-padding" x-show="currentView == VIEW_REPORT">
 
-                <div class="w3-padding w3-white">
-                    <H1 class="w3-text-indigo w3-center w3-padding-16"><i class="fa fa-home"></i> Reports</H1>
+                <div class="w3-padding" x-show="currentSubView == VIEW_REPORT_HOME">
+                    <H1 class="w3-text-indigo w3-center w3-padding-16"><i class="fa fa-file"></i> Reports</H1>
 
                     <div class="w3-row">
-                        <div class="w3-padding w3-quarter" @click="openUsers()">
+                        <div class="w3-padding w3-quarter" @click="openSalesNormal()">
                             <div
-                                class="w3-padding-16 w3-indigo w3-center w3-round-large w3-hover-gray w3-button w3-block">
-                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-users'></i></div>
-                                <h3><span x-text="stats.user_count"></span> User(s)</h3>
+                                class="w3-padding-16 bg-dark w3-text-white w3-center w3-round-large w3-hover-gray w3-button w3-block">
+                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-line-chart'></i></div>
+                                <h3>Product Sales Report</h3>
                                 <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
                             </div>
                         </div>
 
-                        <div class="w3-padding w3-quarter" @click="openCategories()">
+                        <div class="w3-padding w3-quarter" @click="openSalesStatus()">
                             <div
                                 class="w3-padding-16 w3-green w3-center w3-round-large w3-hover-gray w3-button w3-block">
-                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-cubes'></i></div>
-                                <h3><span x-text="stats.product_count"></span> Product(s)</h3>
+                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-bar-chart'></i></div>
+                                <h3>Order Status Report</h3>
                                 <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
                             </div>
                         </div>
 
-                        <div class="w3-padding w3-quarter" @click="openOrders()">
+                        <div class="w3-padding w3-quarter" @click="openOrders()" style="display:none">
                             <div
                                 class="w3-padding-16 w3-brown w3-center w3-round-large w3-hover-gray w3-button w3-block">
-                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-file'></i></div>
-                                <h3><span x-text="stats.order_count"></span> Order(s)</h3>
+                                <div class="w3-xxxlarge w3-text-white"><i class='fa fa-pie-chart'></i></div>
+                                <h3>Order(s)</h3>
                                 <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
                             </div>
                         </div>
 
-                        <div class="w3-padding w3-quarter" @click="openReports()">
+                        <div class="w3-padding w3-quarter" @click="openReports()" style="display:none">
                             <div
                                 class="w3-padding-16 w3-purple w3-center w3-round-large w3-hover-gray w3-button w3-block">
                                 <div class="w3-xxxlarge w3-text-white"><i class='fa fa-pie-chart'></i></div>
-                                <h3><span></span> Reports</h3>
+                                <h3>Reports</h3>
                                 <span class="w3-xlarge"><i class="fa fa-arrow-right"></i></span>
                             </div>
                         </div>
@@ -1170,6 +1173,188 @@
 
                     </div>
                 </div>
+
+                <div class="w3-padding w3-white" x-show="currentSubView == VIEW_REPORT_PRODUCT">
+                    <h3 class="w3-text-indigo w3-xxlarge w3-padding w3-padding-16 w3-center">Product Sales Report</h3>
+                    <button class="w3-button w3-blue" @click="openReports()"><i class="fa fa-arrow-left"></i>
+                        Back</button>
+                    <div class="w3-border w3-padding w3-padding-16">
+                        <h5>Filter Report</h5>
+
+                        <div class="w3-row">
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-filter"></i> Filter By Category</label>
+                                <select class="w3-input w3-border" x-model="reportType">
+                                    <option value="0">All</option>
+                                    <option value="1">Gas Container</option>
+                                    <option value="2">Gas Refill</option>
+                                    <option value="3">Generator Rental</option>
+                                    <option value="4">Generator Purchase</option>
+
+                                </select>
+                            </div>
+
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-filter"></i> Limit Report</label>
+                                <input class="w3-input w3-border" x-model="reportLimit" />
+                            </div>
+
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-calendar"></i> Date From</label>
+                                <input type="date" class="w3-input w3-border" x-model="reportDateFrom" />
+                            </div>
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-calendar"></i> Date To</label>
+                                <input type="date" class="w3-input w3-border" x-model="reportDateTo" />
+                            </div>
+                        </div>
+                        <div>
+                            <button class="w3-button w3-green" @click="loadSalesNormalReport()">Filter Report</button>
+                            <button class="w3-button w3-purple" @click="clearNormalReport()">Clear Filter</button>
+                        </div>
+
+                    </div>
+
+                    <div class="w3-padding w3-padding-16 w3-row">
+
+                        <div class="w3-half w3-padding w3-border w3-border-indigo">
+                            <h2 class="w3-padding bg-dark w3-text-white">Total Sales</h2>
+                            <canvas id="normalSalesChart1" style="max-height:400px"></canvas>
+
+                        </div>
+
+                        <div class="w3-half w3-padding w3-border w3-border-purple">
+                            <h2 class="w3-padding w3-purple">Total Quantity</h2>
+                            <canvas id="normalSalesChart2" style="max-height:400px"></canvas>
+
+                        </div>
+                    </div>
+
+
+                    <div class="w3-padding w3-padding-16">
+
+                        <table class="w3-table-all w3-border w3-border-indigo">
+
+                            <thead>
+                                <tr class="bg-dark w3-text-white">
+                                    <th>Product Type</th>
+                                    <th>Product Name</th>
+                                    <th>Total Sale</th>
+                                    <th>Quantity Sold</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <template x-for="catSale in salesNormal">
+                                    <tr>
+                                        <td x-text="catSale.product_type"></td>
+                                        <td x-text="catSale.product_name"></td>
+                                        <td>R <span x-text="catSale.total_sale"></span></td>
+                                        <td x-text="catSale.qty"></td>
+                                    </tr>
+                                </template>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+
+                </div>
+
+                <div class="w3-padding w3-white" x-show="currentSubView == VIEW_REPORT_STATUS">
+                    <h3 class="w3-text-indigo w3-xxlarge w3-padding w3-padding-16 w3-center">Status Sales Report</h3>
+                    <button class="w3-button w3-blue" @click="openReports()"><i class="fa fa-arrow-left"></i>
+                        Back</button>
+                    <div class="w3-border w3-padding w3-padding-16">
+                        <h5>Filter Report</h5>
+
+                        <div class="w3-row">
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-filter"></i> Filter By Status</label>
+                                <select class="w3-input w3-border" x-model="reportStatus">
+                                    <option value="0">All</option>
+                                    <option value="1">Order Pending</option>
+                                    <option value="2">Awaiting Collection</option>
+                                    <option value="3">Preparing for Delivery</option>
+                                    <option value="4">Order Delivery: On route</option>
+                                    <option value="5">Order Delivered</option>
+                                    <option value="6">Order Collected</option>
+                                    <option value="7">Order Cancelled</option>
+                                </select>
+                            </div>
+
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-filter"></i> Limit Report</label>
+                                <input class="w3-input w3-border" x-model="reportLimit" />
+                            </div>
+
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-calendar"></i> Date From</label>
+                                <input type="date" class="w3-input w3-border" x-model="reportDateFrom" />
+                            </div>
+                            <div class="w3-padding w3-quarter">
+                                <label><i class="fa fa-calendar"></i> Date To</label>
+                                <input type="date" class="w3-input w3-border" x-model="reportDateTo" />
+                            </div>
+                        </div>
+                        <div>
+                            <button class="w3-button w3-green" @click="loadSalesStatusReport()">Filter Report</button>
+                            <button class="w3-button w3-purple" @click="clearStatusReport()">Clear Filter</button>
+                        </div>
+
+                    </div>
+
+                    <div class="w3-padding w3-padding-16 w3-row">
+
+                        <div class="w3-half w3-padding w3-border w3-border-indigo">
+                            <h2 class="w3-padding bg-dark w3-text-white">Total Sales</h2>
+                            <canvas id="statusSalesChart1" style="max-height:400px"></canvas>
+
+                        </div>
+
+                        <div class="w3-half w3-padding w3-border w3-border-indigo">
+                            <h2 class="w3-padding bg-dark w3-text-white">Total Quantity</h2>
+                            <canvas id="statusSalesChart2" style="max-height:400px"></canvas>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="w3-padding w3-padding-16">
+
+                        <table class="w3-table-all w3-border w3-border-indigo">
+
+                            <thead>
+                                <tr class="bg-dark w3-text-white">
+                                    <th>Status</th>
+                                    <th>Total Sale</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <template x-for="catStatus in salesStatus">
+                                    <tr>
+                                        <td x-text="catStatus.status"></td>
+                                        <td>R <span x-text="catStatus.total_sale"></span></td>
+                                        <td x-text="catStatus.qty"></td>
+                                    </tr>
+                                </template>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+
+                </div>
+
 
 
             </div>
