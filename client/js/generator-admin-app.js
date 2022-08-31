@@ -491,7 +491,7 @@ export default function GeneratorAdminApp() {
     },
 
     loadProfile() {
-      Axios.get(`${this.serverUrl}/admin/profile`, this.getTokenHeader())
+      Axios.get(`${this.serverUrl}/profile/`, this.getTokenHeader())
         .then((result) => result.data)
         .then((result) => {
           if (result) {
@@ -503,7 +503,7 @@ export default function GeneratorAdminApp() {
 
     updateProfilePersonal() {
       Axios.put(
-        `${this.serverUrl}/admin/profile/personal`,
+        `${this.serverUrl}/profile//personal`,
         {
           first_name: this.profileData.first_name,
           lastname: this.profileData.lastname,
@@ -523,7 +523,7 @@ export default function GeneratorAdminApp() {
 
     updateProfileContact() {
       Axios.put(
-        `${this.serverUrl}/admin/profile/contact`,
+        `${this.serverUrl}/profile//contact`,
         {
           contact_number: this.profileData.contact_number,
           email_address: this.profileData.email_address,
@@ -543,7 +543,7 @@ export default function GeneratorAdminApp() {
 
     updateProfilePassword() {
       Axios.put(
-        `${this.serverUrl}/admin/profile/password`,
+        `${this.serverUrl}/profile//password`,
         {
           confirm_password: this.profileData.confirmPassword,
           password: this.profileData.newPassword,
